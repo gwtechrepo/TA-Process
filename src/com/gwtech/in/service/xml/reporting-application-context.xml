@@ -1,0 +1,27 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<bean id="headerFooterOperation_" class="com.gwtech.in.service.impl.HeaderFooterOperationImpl" />
+
+	<bean id="reportingService" class="com.gwtech.in.report.xml.ReportingServiceImpl" >
+		<property name="miscUtility" ref="miscUtility_"></property>
+		<property name="fileWriterI" ref="fileWriterImpl_"></property>
+	</bean>
+	
+	<bean id="miscUtility_" class="com.gwtech.in.utils.MiscUtility">
+		<property name="fileWriterI" ref="fileWriterImpl_"></property>
+	</bean>
+	
+	<bean id="fileWriterImpl_" class="com.gwtech.in.service.impl.FileWriterImpl" >
+		<property name="miscUtility" ref="miscUtility_"></property>
+		<property name="taFloatItemOrdering" ref="taFloatItemOrdering_"></property>
+	</bean>
+	
+	<bean id="taFloatItemOrdering_" class="com.gwtech.in.service.impl.TAFloatItemOrderingImpl" >
+		<property name="miscUtility" ref="miscUtility_"></property>
+		<property name="fileWriterI" ref="fileWriterImpl_"></property>
+	</bean>
+	
+</beans>

@@ -1,0 +1,58 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<bean id="replaceEvaluatorFindAndHighlight_" class="com.gwtech.in.service.impl.ReplaceEvaluatorFindAndHighlight" />
+
+	<bean id="fileWriterImpl_" class="com.gwtech.in.service.impl.FileWriterImpl" >
+		<property name="miscUtility" ref="miscUtility_"></property>
+		<property name="taFloatItemOrdering" ref="taFloatItemOrdering_"></property>
+	</bean>
+	
+	<bean id="artOperation_" class="com.gwtech.in.service.impl.ArtOperationImpl"></bean>
+	<bean id="headerFooterOperation_" class="com.gwtech.in.service.impl.HeaderFooterOperationImpl" />
+	
+	<bean id="taFloatItemOrdering_" class="com.gwtech.in.service.impl.TAFloatItemOrderingImpl" >
+		<property name="miscUtility" ref="miscUtility_"></property>
+		<property name="fileWriterI" ref="fileWriterImpl_"></property>
+	</bean>
+	
+	<bean id="taLogReport_" class="com.gwtech.in.service.impl.TALogReportImpl" >
+		<property name="fileWriterI" ref="fileWriterImpl_"></property>
+		<property name="miscUtility" ref="miscUtility_"></property>
+		<property name="consecutiveFlow" ref="consecutiveFlow_"></property>
+	</bean>
+	
+	<bean id="consecutiveFlow_" class="com.gwtech.in.service.impl.ConsecutiveFlow" />
+	<bean id="fontProperties_" class="com.gwtech.in.service.impl.FontPropertiesImpl" />
+	
+	<bean id="miscUtility_" class="com.gwtech.in.utils.MiscUtility" >
+		<property name="fileWriterI" ref="fileWriterImpl_"></property>
+	</bean>
+	
+	<bean id="asposeImageFetch_" class="com.gwtech.in.service.impl.AsposeImageFetchImpl">
+		<property name="artOperation" ref="artOperation_"></property>
+	</bean>
+	
+	<bean id="taChapOutline_" class="com.gwtech.in.service.impl.TAChapOutlineImpl" >
+		<property name="miscUtility" ref="miscUtility_"></property>
+	</bean>
+	
+	<bean id="alertsQuery_" class="com.gwtech.in.service.impl.AlertsQueryImpl">
+		<property name="fileWriterI" ref="fileWriterImpl_"></property>
+	</bean>
+
+	<bean id="wordtotext_" class="com.gwtech.in.service.impl.WordToTextImpl">
+		<property name="fileWriterI" ref="fileWriterImpl_"></property>
+		<property name="fontProperties" ref="fontProperties_"></property>
+		<property name="taChapOutline" ref="taChapOutline_"></property>
+		<property name="miscUtility" ref="miscUtility_"></property>
+		<property name="taFloatItemOrdering" ref="taFloatItemOrdering_"></property>
+		<property name="taLogReport" ref="taLogReport_"></property>
+		<property name="alertsQuery" ref="alertsQuery_"></property>
+		<property name="headerFooterOperation" ref="headerFooterOperation_"></property>
+		<property name="replaceEvaluatorFindAndHighlight" ref="replaceEvaluatorFindAndHighlight_"></property>
+	</bean>
+
+</beans>
