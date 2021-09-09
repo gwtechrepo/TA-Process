@@ -67,6 +67,7 @@ public class FontPropertiesImpl implements FontProperties {
 //				(run.getFont().getAllCaps()) || (run.getFont().getSmallCaps()) || 
 				(run.getFont().getSubscript()) || (run.getFont().getSuperscript()) ) {
 			
+			
 			buffer.append("<@");
 			
 			if (run.getFont().getBold())			if (buffer.toString().length() < 3) {	buffer.append("bold");	} else	{	buffer.append("-bold");	}
