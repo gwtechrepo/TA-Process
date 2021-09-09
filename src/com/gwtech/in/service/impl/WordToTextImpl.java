@@ -881,9 +881,9 @@ public class WordToTextImpl implements WordToText {
 													paraText = paraText.substring(5);
 													
 												}
-												if (paraText.toLowerCase().contains("<##src>")) {
+												if (paraText.toLowerCase().endsWith("<##src>")) {
 													
-													paraText = paraText.replace("<##src>", "");
+													paraText = "";
 													isFloatFigureSrcItem = false;
 												}
 												
