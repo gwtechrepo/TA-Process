@@ -85,18 +85,37 @@ public class ReportingServiceImpl implements ReportingService {
 					
 					if (paraText.toLowerCase().startsWith("<chap title>")) {
 						
-						paraText = wordToText.fetchSourceTextFromDoc(paragraph);
-						paraText = paraText.substring((paraText.indexOf("<CHAP TITLE>") + "<CHAP TITLE>".length()));
+						//EXITING THE ABDOMEN AND CLOSURE TECHNIQUES
+						
+						paraText = wordToText.fetchChapterTitleSourceTextFromDoc(paragraph);
+						
+						
+						
+						paraText = miscUtility.removeExtraSpaces(paraText);
+						paraText = miscUtility.removeStartEndSpaces(paraText);
+						paraText = miscUtility.removeReturnUnit(paraText);
+						paraText = miscUtility.replaceUnknownCharBox(paraText);
+						paraText = miscUtility.removeExtraSpaces(paraText);
+						
+						if (paraText.indexOf("<CHAP TITLE>") > -1)
+							paraText = paraText.substring((paraText.indexOf("<CHAP TITLE>") + "<CHAP TITLE>".length()));
+						else if (paraText.indexOf("<chap title>") > -1)
+							paraText = paraText.substring((paraText.indexOf("<chap title>") + "<chap title>".length()));
 						
 						if (paraText.toLowerCase().contains("<@su"))
 							paraText = paraText.substring(0, (paraText.indexOf("<@su")));
+						
+						
 						
 						result[0] = paraText;
 						isBodyActive = true;
 						
 					} else if (paraText.toLowerCase().startsWith("<chap au>")) {
 						
-						paraText = paraText.substring((paraText.indexOf("<CHAP AU>") + "<CHAP AU>".length()));
+						if (paraText.indexOf("<CHAP AU>") > -1)
+							paraText = paraText.substring((paraText.indexOf("<CHAP AU>") + "<CHAP AU>".length()));
+						else if (paraText.indexOf("<chap au>") > -1)
+							paraText = paraText.substring((paraText.indexOf("<chap au>") + "<chap au>".length()));
 						result[1] = paraText;
 						
 					} else if ((paraText.toLowerCase().startsWith("<chap ")) & ((paraText.toLowerCase().contains("outline")) == false)) {
@@ -174,7 +193,6 @@ public class ReportingServiceImpl implements ReportingService {
 		
 		return result;
 	}
-	
 	
 	
 	@Override

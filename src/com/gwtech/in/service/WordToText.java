@@ -14,4 +14,5 @@ public interface WordToText {
 	public String deleteAllComments(String docFile) throws Exception;
 	public void createResources() throws Exception;
 	public String fetchSourceTextFromDoc(Paragraph paragraph) throws Exception;
+	public String fetchChapterTitleSourceTextFromDoc(Paragraph paragraph) throws Exception;
 }

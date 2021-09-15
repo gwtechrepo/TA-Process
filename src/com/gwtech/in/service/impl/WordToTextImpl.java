@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1867,7 +1868,117 @@ public class WordToTextImpl implements WordToText {
 		return data;
 	}
 
+	private static boolean isStringUpperCase(String str){
+        
+        //convert String to char array
+        char[] charArray = str.toCharArray();
+        
+        for(int i=0; i < charArray.length; i++){
+            
+            //if any character is not in upper case, return false
+            if( !Character.isUpperCase( charArray[i] ))
+                return false;
+        }
+        
+        return true;
+    }
+
 	
+	@Override
+	public String fetchChapterTitleSourceTextFromDoc(Paragraph paragraph) throws Exception {
+		
+		StringBuffer buffer = new StringBuffer();
+		NodeCollection runs = paragraph.getChildNodes(NodeType.ANY, true);
+		Constants.styleTagStack = new ArrayList<String>();
+		String hyperlink = "";
+		
+		for (Node runNode : (Iterable<Node>) runs) {
+			
+			String charText = "";
+			
+			if (runNode != null) {
+				
+				if (runNode.getNodeType() == NodeType.SPECIAL_CHAR) {
+					charText = runNode.getText();
+					
+					try {
+//						charText = HttpRequestImpl.checkSymbolWithUnicode(array, charText);
+					} catch (Exception exception) {
+						logger.error(exception.getMessage(), exception);
+					}
+					buffer.append(charText);
+				}
+				else if (runNode.getNodeType() == NodeType.RUN){
+					
+					Run run = (Run)runNode;
+					{
+						
+						if (run != null) {
+							
+							charText = run.getText();
+							
+								
+								StringBuffer bufferChp = new StringBuffer();
+								StringTokenizer tokenizer = new StringTokenizer(charText);
+								while (tokenizer.hasMoreElements()) {
+									
+									
+									String object = (String) tokenizer.nextElement();
+									String firstText = "", lastText = "";
+									
+									if ((object.length() > 1) & (isStringUpperCase(object))) {
+										
+										firstText = object.substring(0, 1);
+										lastText = object.substring(1);
+										object = firstText.toUpperCase() + lastText.toLowerCase();
+									}
+									bufferChp.append(object + " ");
+								}
+								if (bufferChp.toString().length() > 1)
+									charText = bufferChp.toString();
+							
+							charText = replaceExtraText(charText);
+							
+							if ((charText.contains("HYPERLINK ")))
+								continue;
+							
+							charText = removePreSuffixExtraSpaces(charText);
+							charText = fontProperties.fetchFontStyleScript(run, charText, "", hyperlink);
+							buffer.append(charText);
+						}
+					}
+				}
+			}
+		}
+		
+		
+		
+		if (Constants.styleTagStack.size() > 0) {
+			
+			StringBuffer tagNameBuff = new StringBuffer();
+			tagNameBuff.append("<@");
+			
+			for (int index = 0; index < Constants.styleTagStack.size(); index ++) {
+				tagNameBuff.append(Constants.styleTagStack.get(index));
+			}
+			
+			tagNameBuff.append("-close>");
+			
+			buffer.append(tagNameBuff.toString());
+		}
+		buffer.append("\n");
+		
+		String data = buffer.toString();
+		
+		data = miscUtility.removeExtraSpaces(data);
+		data = miscUtility.removeStartEndSpaces(data);
+		data = miscUtility.removeReturnUnit(data);
+		data = miscUtility.replaceUnknownCharBox(data);
+		
+		return data;
+	}
+
+
 	
 	/**
 	 * Returns a list with all links contained in the input
