@@ -34,6 +34,10 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 		Boolean isFloatItem = false;
 		String boxLabel = "";
 		
+		//<@bold-bold-italic-open>Figure 11-2
+		if (line.startsWith("<@"))
+			line = line.substring(line.indexOf(">")+1);
+		
 		if ((line.toLowerCase().startsWith("fig")) || (line.toLowerCase().startsWith("<@bold-open>fig"))) { //Fig. 1.1
 			
 			if ((line.toLowerCase().startsWith("fig")) || (line.toLowerCase().startsWith("<@bold-open>fig"))) {
@@ -96,6 +100,9 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 		String[] floatItemArray = {"", ""};
 		String boxLabel = "";
 		
+		if (line.startsWith("<@"))
+			line = line.substring(line.indexOf(">")+1);
+		
 		if ((line.toLowerCase().startsWith("box")) || (line.toLowerCase().startsWith("<@bold-open>box"))) { //Box. 1.1
 			
 			if ((line.toLowerCase().startsWith("box")) || (line.toLowerCase().startsWith("<@bold-open>box"))) {
@@ -138,6 +145,9 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 		String[] floatItemArray = {"", ""};
 		String boxLabel = "";
 		
+		if (line.startsWith("<@"))
+			line = line.substring(line.indexOf(">")+1);
+		
 		if ((line.toLowerCase().startsWith("table")) || (line.toLowerCase().startsWith("<@bold-open>table"))) { //Table. 1.1
 			
 			if ((line.toLowerCase().startsWith("table")) || (line.toLowerCase().startsWith("<@bold-open>table"))) {
@@ -178,6 +188,9 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 		String[] floatItemArray = {"", ""};
 		String boxLabel = "";
 		
+		if (line.startsWith("<@"))
+			line = line.substring(line.indexOf(">")+1);
+		
 		if ((line.toLowerCase().startsWith("video")) || (line.toLowerCase().startsWith("<@bold-open>video"))) { //Video. 1.1
 			
 			if ((line.toLowerCase().startsWith("video")) || (line.toLowerCase().startsWith("<@bold-open>video"))) {
@@ -217,6 +230,8 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 		String line = lineTxt;
 		Boolean isFloatItem = false;
 		
+		if (line.startsWith("<@"))
+			line = line.substring(line.indexOf(">")+1);
 		
 		if ((line.toLowerCase().startsWith("fig")) || (line.toLowerCase().startsWith("<@bold-open>fig"))) { //Fig. 1.1
 			

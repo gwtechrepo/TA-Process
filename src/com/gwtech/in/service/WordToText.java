@@ -1,5 +1,7 @@
 package com.gwtech.in.service;
 
+import com.aspose.words.Paragraph;
+
 public interface WordToText {
 
 	public void init(String fileName) throws Exception;
@@ -11,4 +13,5 @@ public interface WordToText {
 	public String coverTAFiltering(String docFile, String outputFileDocx, boolean isRefs) throws Exception;
 	public String deleteAllComments(String docFile) throws Exception;
 	public void createResources() throws Exception;
+	public String fetchSourceTextFromDoc(Paragraph paragraph) throws Exception;
 }

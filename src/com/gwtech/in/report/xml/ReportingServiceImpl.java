@@ -14,6 +14,7 @@ import com.aspose.words.Paragraph;
 import com.aspose.words.PdfCompliance;
 import com.gwtech.in.report.ReportingService;
 import com.gwtech.in.service.FileWriterI;
+import com.gwtech.in.service.WordToText;
 import com.gwtech.in.service.impl.RemoveHiddenContentVisitor;
 import com.gwtech.in.utils.Constants;
 import com.gwtech.in.utils.MiscUtility;
@@ -37,7 +38,7 @@ public class ReportingServiceImpl implements ReportingService {
 	
 	
 	@Override
-	public String[] fetchChapterDescInfo(String docFile) throws Exception {
+	public String[] fetchChapterDescInfo(String docFile, WordToText wordToText) throws Exception {
 		
 		String[] result = new String[8];
 		Document doc = new Document(docFile);
@@ -84,7 +85,11 @@ public class ReportingServiceImpl implements ReportingService {
 					
 					if (paraText.toLowerCase().startsWith("<chap title>")) {
 						
+						paraText = wordToText.fetchSourceTextFromDoc(paragraph);
 						paraText = paraText.substring((paraText.indexOf("<CHAP TITLE>") + "<CHAP TITLE>".length()));
+						
+						if (paraText.toLowerCase().contains("<@su"))
+							paraText = paraText.substring(0, (paraText.indexOf("<@su")));
 						
 						result[0] = paraText;
 						isBodyActive = true;

@@ -106,7 +106,7 @@ public class MainAppTADocTxt {
 				docFile = wordToText.deleteAllComments(docFile);
 				headerFooterOperation.removeFooterFromDocFile(docFile, docFile);
 				
-				String[] chapInfoArray = reportingService.fetchChapterDescInfo(docFile);
+				String[] chapInfoArray = reportingService.fetchChapterDescInfo(docFile, wordToText);
 				chapInfoArray = reportingService.wordToPdf(docFile, chapInfoArray);
 				
 				StringBuffer buffer = new StringBuffer();

@@ -387,6 +387,7 @@ public class WordToTextImpl implements WordToText {
 		Boolean isFloatFigureSrcItem = false, isFloatBoxSrcItem = false, isFloatTableSrcItem = false, isFloatVideoSrcItem = false;
 		Boolean isFloatFigureAltItem = false, isFloatBoxAltItem = false, isFloatTableAltItem = false, isFloatVideoAltItem = false;
 		Boolean isFloatFigureCapItem = false, isFloatBoxCapItem = false, isFloatTableCapItem = false, isFloatVideoCapItem = false;
+		Boolean isFloatFigureFnoteItem = false, isFloatBoxFnoteItem = false, isFloatTableFnoteItem = false, isFloatVideoFnoteItem = false;
 
 		for (Node node : (Iterable<Node>) nodes) {
 			
@@ -728,7 +729,7 @@ public class WordToTextImpl implements WordToText {
 					
 					String listLabelObj = "";
 					
-					if (paraText.contains("consistently proved to be a stronger predictor of outcomes than creatinine"))
+					if (paraText.contains("Mevorach RA, Hulbert WC, Merguerian PA, Rabinowitz R. Perforation and intravesical erosion of a ventriculoperitoneal sh"))
 						logger.debug("Determining whether neurological abnormalities in the ICU patient ");
 					
 				    if (paragraph.getListFormat().isListItem()) {
@@ -800,62 +801,65 @@ public class WordToTextImpl implements WordToText {
 									logger.debug("<figure legends>");
 								
 								if (
-										(paraText.toLowerCase().startsWith("<")) & 
+										(paraText.toLowerCase().contains("<")) & 
 										(isFloatFigureItem) & 
-										((paraText.toLowerCase().startsWith("<src")) == false) & ((paraText.toLowerCase().startsWith("<##src")) == false) &
-										((paraText.toLowerCase().startsWith("<alt")) == false) & ((paraText.toLowerCase().startsWith("<##alt")) == false) &
-										((paraText.toLowerCase().startsWith("<cap")) == false) & ((paraText.toLowerCase().startsWith("<##cap")) == false)
+										((paraText.toLowerCase().contains("<src")) == false) & ((paraText.toLowerCase().contains("<##src")) == false) &
+										((paraText.toLowerCase().contains("<alt")) == false) & ((paraText.toLowerCase().contains("<##alt")) == false) &
+										((paraText.toLowerCase().contains("<cap")) == false) & ((paraText.toLowerCase().contains("<##cap")) == false) &
+										((paraText.toLowerCase().contains("<fnote")) == false) & ((paraText.toLowerCase().contains("<##fnote")) == false)
 										) {
 									isFloatFigureItem = false;
 									previousFloatFigLabel = "";
 								}
-								if (paraText.toLowerCase().startsWith("<figure legends>"))
+								if (paraText.toLowerCase().contains("<figure legends>"))
 									isFloatFigureItem = true;
 								
 								if (
-										(paraText.toLowerCase().startsWith("<")) & 
+										(paraText.toLowerCase().contains("<")) & 
 										(isFloatVideoItem) & 
-										((paraText.toLowerCase().startsWith("<src")) == false) & ((paraText.toLowerCase().startsWith("<##src")) == false) &
-										((paraText.toLowerCase().startsWith("<alt")) == false) & ((paraText.toLowerCase().startsWith("<##alt")) == false) &
-										((paraText.toLowerCase().startsWith("<cap")) == false) & ((paraText.toLowerCase().startsWith("<##cap")) == false)
+										((paraText.toLowerCase().contains("<src")) == false) & ((paraText.toLowerCase().contains("<##src")) == false) &
+										((paraText.toLowerCase().contains("<alt")) == false) & ((paraText.toLowerCase().contains("<##alt")) == false) &
+										((paraText.toLowerCase().contains("<cap")) == false) & ((paraText.toLowerCase().contains("<##cap")) == false) &
+										((paraText.toLowerCase().contains("<fnote")) == false) & ((paraText.toLowerCase().contains("<##fnote")) == false)
 										) {
 									
 									isFloatVideoItem = false;
 									previousFloatVideoLabel = "";
 								}
-								if (paraText.toLowerCase().startsWith("<video"))
+								if (paraText.toLowerCase().contains("<video"))
 									isFloatVideoItem = true;
 								
-								if ((paraText.toLowerCase().startsWith("<## table>")) & (isFloatTableItem)) {
+								if ((paraText.toLowerCase().contains("<## table>")) & (isFloatTableItem)) {
 									isFloatTableItem = false;
 									previousFloatTableLabel = "";
 								}
-								if ((paraText.toLowerCase().startsWith("<##table>")) & (isFloatTableItem)) {
+								if ((paraText.toLowerCase().contains("<##table>")) & (isFloatTableItem)) {
 									isFloatTableItem = false;
 									previousFloatTableLabel = "";
 								}
-								if (paraText.toLowerCase().startsWith("<table>"))
+								if (paraText.toLowerCase().contains("<table>"))
 									isFloatTableItem = true;
 								
-								if ((paraText.toLowerCase().startsWith("<## box>")) & (isFloatBoxItem)) {
+								if ((paraText.toLowerCase().contains("<## box>")) & (isFloatBoxItem)) {
 									isFloatBoxItem = false;
 									previousFloatBoxLabel = "";
 								}
-								if ((paraText.toLowerCase().startsWith("<##box>")) & (isFloatBoxItem)) {
+								if ((paraText.toLowerCase().contains("<##box>")) & (isFloatBoxItem)) {
 									isFloatBoxItem = false;
 									previousFloatBoxLabel = "";
 								}
-								if (paraText.toLowerCase().startsWith("<box>"))
+								if (paraText.toLowerCase().contains("<box>"))
 									isFloatBoxItem = true;
 								
 								if (isFloatFigureItem)	{
 									
-									if (paraText.toLowerCase().startsWith("<alt")) isFloatFigureAltItem = true;
-									if (paraText.toLowerCase().startsWith("<cap")) isFloatFigureCapItem = true;
+									if (paraText.toLowerCase().contains("<alt")) isFloatFigureAltItem = true;
+									if (paraText.toLowerCase().contains("<cap")) isFloatFigureCapItem = true;
+									if (paraText.toLowerCase().contains("<fnote")) isFloatFigureFnoteItem = true;
 									
 									
 									String paraFigText = fetchSourceTextFromDoc(paragraph);
-									if ((isFloatFigureCapItem == false) & (isFloatFigureAltItem == false))
+									if ((isFloatFigureCapItem == false) & (isFloatFigureAltItem == false) & (isFloatFigureFnoteItem == false))
 										floatItemArray = taFloatItemOrdering.floatFigureItemCheckLog(paraFigText, true);
 									
 									if (Boolean.parseBoolean(floatItemArray[0])) {
@@ -865,23 +869,24 @@ public class WordToTextImpl implements WordToText {
 										
 										// source part
 										if (
-												(previousFloatFigLabel.toLowerCase().startsWith("fig")) & 
+												(previousFloatFigLabel.toLowerCase().contains("fig")) & 
 												(previousFloatFigLabel.length() > 0) &
 												(isFloatFigureAltItem == false) &
-												(isFloatFigureCapItem == false)
+												(isFloatFigureCapItem == false) &
+												(isFloatFigureFnoteItem == false)
 												) {
 											
-											if (paraText.toLowerCase().startsWith("<src>")) {
+											if (paraText.toLowerCase().contains("<src>")) {
 												isFloatFigureSrcItem = true;
 											}
 											if (isFloatFigureSrcItem) {
 												
 												paraText = fetchSourceTextFromDoc(paragraph);
-												if (paraText.toLowerCase().startsWith("<src>")) {
+												if (paraText.toLowerCase().contains("<src>")) {
 													paraText = paraText.substring(5);
 													
 												}
-												if (paraText.toLowerCase().endsWith("<##src>")) {
+												if (paraText.toLowerCase().contains("<##src>")) {
 													
 													paraText = "";
 													isFloatFigureSrcItem = false;
@@ -900,15 +905,17 @@ public class WordToTextImpl implements WordToText {
 									
 									if (paraText.toLowerCase().contains("<##cap")) isFloatFigureCapItem = false;
 									if (paraText.toLowerCase().contains("<##alt")) isFloatFigureAltItem = false;
+									if (paraText.toLowerCase().contains("<##fnote")) isFloatFigureFnoteItem = false;
 								}
 								if (isFloatVideoItem)	{
 									
-									if (paraText.toLowerCase().startsWith("<alt")) isFloatVideoAltItem = true;
-									if (paraText.toLowerCase().startsWith("<cap")) isFloatVideoCapItem = true;
+									if (paraText.toLowerCase().contains("<alt")) isFloatVideoAltItem = true;
+									if (paraText.toLowerCase().contains("<cap")) isFloatVideoCapItem = true;
+									if (paraText.toLowerCase().contains("<fnote")) isFloatVideoFnoteItem = true;
 									
 									
 									String paraFigText = fetchSourceTextFromDoc(paragraph);
-									if ((isFloatVideoCapItem == false) & (isFloatVideoAltItem == false))
+									if ((isFloatVideoCapItem == false) & (isFloatVideoAltItem == false) & (isFloatVideoFnoteItem == false))
 										floatItemArray = taFloatItemOrdering.floatVideoItemCheckLog(paraFigText, true);
 									
 									if (Boolean.parseBoolean(floatItemArray[0])) {
@@ -918,19 +925,20 @@ public class WordToTextImpl implements WordToText {
 										
 										// source part
 										if (
-												(previousFloatVideoLabel.toLowerCase().startsWith("video")) & 
+												(previousFloatVideoLabel.toLowerCase().contains("video")) & 
 												(previousFloatVideoLabel.length() > 0) &
 												(isFloatVideoAltItem == false) &
-												(isFloatVideoCapItem == false)
+												(isFloatVideoCapItem == false) &
+												(isFloatVideoFnoteItem == false)
 												) {
 											
-											if (paraText.toLowerCase().startsWith("<src>")) {
+											if (paraText.toLowerCase().contains("<src>")) {
 												isFloatVideoSrcItem = true;
 											}
 											if (isFloatVideoSrcItem) {
 												
 												paraText = fetchSourceTextFromDoc(paragraph);
-												if (paraText.toLowerCase().startsWith("<src>")) {
+												if (paraText.toLowerCase().contains("<src>")) {
 													paraText = paraText.substring(5);
 													
 												}
@@ -953,15 +961,17 @@ public class WordToTextImpl implements WordToText {
 									
 									if (paraText.toLowerCase().contains("<##cap")) isFloatVideoCapItem = false;
 									if (paraText.toLowerCase().contains("<##alt")) isFloatVideoAltItem = false;
+									if (paraText.toLowerCase().contains("<##fnote")) isFloatVideoFnoteItem = false;
 								}
 								if (isFloatTableItem)	{
 									
-									if (paraText.toLowerCase().startsWith("<alt")) isFloatTableAltItem = true;
-									if (paraText.toLowerCase().startsWith("<cap")) isFloatTableCapItem = true;
+									if (paraText.toLowerCase().contains("<alt")) isFloatTableAltItem = true;
+									if (paraText.toLowerCase().contains("<cap")) isFloatTableCapItem = true;
+									if (paraText.toLowerCase().contains("<fnote")) isFloatTableFnoteItem = true;
 									
 									
 									String paraFigText = fetchSourceTextFromDoc(paragraph);
-									if ((isFloatTableCapItem == false) & (isFloatTableAltItem == false))
+									if ((isFloatTableCapItem == false) & (isFloatTableAltItem == false) & (isFloatTableFnoteItem == false))
 										floatItemArray = taFloatItemOrdering.floatTableItemCheckLog(paraFigText, true);
 									
 									if (Boolean.parseBoolean(floatItemArray[0])) {
@@ -971,19 +981,20 @@ public class WordToTextImpl implements WordToText {
 										
 										// source part
 										if (
-												(previousFloatTableLabel.toLowerCase().startsWith("table")) & 
+												(previousFloatTableLabel.toLowerCase().contains("table")) & 
 												(previousFloatTableLabel.length() > 0) &
 												(isFloatTableAltItem == false) &
-												(isFloatTableCapItem == false)
+												(isFloatTableCapItem == false) &
+												(isFloatTableFnoteItem == false)
 												) {
 											
-											if (paraText.toLowerCase().startsWith("<src>")) {
+											if (paraText.toLowerCase().contains("<src>")) {
 												isFloatTableSrcItem = true;
 											}
 											if (isFloatTableSrcItem) {
 												
 												paraText = fetchSourceTextFromDoc(paragraph);
-												if (paraText.toLowerCase().startsWith("<src>")) {
+												if (paraText.toLowerCase().contains("<src>")) {
 													paraText = paraText.substring(5);
 													
 												}
@@ -1006,15 +1017,17 @@ public class WordToTextImpl implements WordToText {
 									
 									if (paraText.toLowerCase().contains("<##cap")) isFloatTableCapItem = false;
 									if (paraText.toLowerCase().contains("<##alt")) isFloatTableAltItem = false;
+									if (paraText.toLowerCase().contains("<##fnote")) isFloatTableFnoteItem = false;
 								}
 								if (isFloatBoxItem)	{
 									
-									if (paraText.toLowerCase().startsWith("<alt")) isFloatBoxAltItem = true;
-									if (paraText.toLowerCase().startsWith("<cap")) isFloatBoxCapItem = true;
+									if (paraText.toLowerCase().contains("<alt")) isFloatBoxAltItem = true;
+									if (paraText.toLowerCase().contains("<cap")) isFloatBoxCapItem = true;
+									if (paraText.toLowerCase().contains("<fnote")) isFloatBoxFnoteItem = true;
 									
 									
 									String paraFigText = fetchSourceTextFromDoc(paragraph);
-									if ((isFloatBoxCapItem == false) & (isFloatBoxAltItem == false))
+									if ((isFloatBoxCapItem == false) & (isFloatBoxAltItem == false) & (isFloatBoxFnoteItem == false))
 										floatItemArray = taFloatItemOrdering.floatBoxItemCheckLog(paraFigText, true);
 									
 									if (Boolean.parseBoolean(floatItemArray[0])) {
@@ -1024,19 +1037,20 @@ public class WordToTextImpl implements WordToText {
 										
 										// source part
 										if (
-												(previousFloatBoxLabel.toLowerCase().startsWith("box")) & 
+												(previousFloatBoxLabel.toLowerCase().contains("box")) & 
 												(previousFloatBoxLabel.length() > 0) &
 												(isFloatBoxAltItem == false) &
-												(isFloatBoxCapItem == false)
+												(isFloatBoxCapItem == false) &
+												(isFloatBoxFnoteItem == false)
 												) {
 											
-											if (paraText.toLowerCase().startsWith("<src>")) {
+											if (paraText.toLowerCase().contains("<src>")) {
 												isFloatBoxSrcItem = true;
 											}
 											if (isFloatBoxSrcItem) {
 												
 												paraText = fetchSourceTextFromDoc(paragraph);
-												if (paraText.toLowerCase().startsWith("<src>")) {
+												if (paraText.toLowerCase().contains("<src>")) {
 													paraText = paraText.substring(5);
 													
 												}
@@ -1055,12 +1069,14 @@ public class WordToTextImpl implements WordToText {
 									
 									if (paraText.toLowerCase().contains("<##cap")) isFloatBoxCapItem = false;
 									if (paraText.toLowerCase().contains("<##alt")) isFloatBoxAltItem = false;
+									if (paraText.toLowerCase().contains("<##fnote")) isFloatBoxFnoteItem = false;
 								}
 								
 							} else if (Constants.isFilterTAFace) {
 								
 								isFloatItem = taFloatItemOrdering.floatItemCheckLog(paraText, true);
 							}
+							
 							
 							
 							boolean isHeadPara = Boolean.parseBoolean(headResults[0]);
@@ -1778,7 +1794,8 @@ public class WordToTextImpl implements WordToText {
 	}
 	
 	
-	private String fetchSourceTextFromDoc(Paragraph paragraph) throws Exception {
+	@Override
+	public String fetchSourceTextFromDoc(Paragraph paragraph) throws Exception {
 		
 		StringBuffer buffer = new StringBuffer();
 		NodeCollection runs = paragraph.getChildNodes(NodeType.ANY, true);
