@@ -158,7 +158,13 @@ public class ReportingServiceImpl implements ReportingService {
 					} 
 					
 					
-					if (paraText.toLowerCase().startsWith("<references>")) {
+					if (
+							(paraText.toLowerCase().startsWith("<references>")) ||
+							(paraText.toLowerCase().startsWith("<suggested reading")) ||
+							(paraText.toLowerCase().startsWith("<bibliography")) ||
+							(paraText.toLowerCase().startsWith("<further reading")) ||
+							(paraText.toLowerCase().startsWith("<selected reference"))
+							) {
 						
 						isReferencesActive = true;
 						String referenceStartTag = "";
