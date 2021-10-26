@@ -275,11 +275,12 @@ public class WordToTextImpl implements WordToText {
 								
 								for (String obj : splitList) {
 									
+									obj = obj.trim();
 									obj = obj.replace("[[[SOFT-BREAK-ENTRY]]]", "");
 									refsPart.append(obj + "\n");
 								}
 							} else {
-								
+								paraText = paraText.trim();
 								refsPart.append(paraText + "\n");
 							}
 						}
@@ -295,11 +296,13 @@ public class WordToTextImpl implements WordToText {
 								
 								for (String obj : splitList) {
 									
+									obj = obj.trim();
 									obj = obj.replace("[[[SOFT-BREAK-ENTRY]]]", "");
 									bodyPart.append(obj + "\n");
 								}
 							} else {
 								
+								paraText = paraText.trim();
 								bodyPart.append(paraText + "\n");
 							}
 						}
@@ -455,6 +458,10 @@ public class WordToTextImpl implements WordToText {
 						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("unn fig"))) {
 									
 									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/figure-unnum.txt", true);
+								}
+						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("numbered equation"))) {
+									
+									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/figure-num-equation.txt", true);
 								}
 						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("unn table"))) {
 									
@@ -698,8 +705,7 @@ public class WordToTextImpl implements WordToText {
 
 				tableIndex++;
 				
-				
-			} else if ((node.getNodeType() == NodeType.PARAGRAPH)) {
+			} else if ((node.getNodeType() == NodeType.PARAGRAPH) || ((node.getNodeType() == NodeType.RUN))) {
 				
 				Paragraph paragraph = (Paragraph) doc.getChild(NodeType.PARAGRAPH, paraIndex, true);
 				
@@ -730,8 +736,8 @@ public class WordToTextImpl implements WordToText {
 					
 					String listLabelObj = "";
 					
-					if (paraText.contains("Mevorach RA, Hulbert WC, Merguerian PA, Rabinowitz R. Perforation and intravesical erosion of a ventriculoperitoneal sh"))
-						logger.debug("Determining whether neurological abnormalities in the ICU patient ");
+					if (paraText.toLowerCase().contains("figure 2.1"))
+						logger.debug("Fig leg:<@bold-open>FIGURE 2.1");
 					
 				    if (paragraph.getListFormat().isListItem()) {
 				    	// This is the text we get when actually getting when we output this node to text format
@@ -781,6 +787,12 @@ public class WordToTextImpl implements WordToText {
 									
 									fileWriterI.write("\n"+paraText, Constants.outputPath + "/Resource/figure-unnum.txt", true);
 								}
+								
+								if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("numbered equation"))) {
+									
+									fileWriterI.write("\n"+paraText, Constants.outputPath + "/Resource/figure-num-equation.txt", true);
+								}
+								
 						        if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("unn table"))) {
 									
 									fileWriterI.write("\n"+paraText, Constants.outputPath + "/Resource/table-unnum.txt", true);
@@ -798,11 +810,11 @@ public class WordToTextImpl implements WordToText {
 								 * un-num/display ends float items
 								 */
 						        
-								if (paraText.toLowerCase().contains("<figure legends>"))
+								if (paraText.toLowerCase().contains("bismuth-corlette classification scheme of biliary strictures. (see ch. 42"))
 									logger.debug("<figure legends>");
 								
 								if (
-										(paraText.toLowerCase().contains("<")) & 
+										(paraText.toLowerCase().startsWith("<")) & 
 										(isFloatFigureItem) & 
 										((paraText.toLowerCase().contains("<src")) == false) & ((paraText.toLowerCase().contains("<##src")) == false) &
 										((paraText.toLowerCase().contains("<alt")) == false) & ((paraText.toLowerCase().contains("<##alt")) == false) &
@@ -816,7 +828,7 @@ public class WordToTextImpl implements WordToText {
 									isFloatFigureItem = true;
 								
 								if (
-										(paraText.toLowerCase().contains("<")) & 
+										(paraText.toLowerCase().startsWith("<")) & 
 										(isFloatVideoItem) & 
 										((paraText.toLowerCase().contains("<src")) == false) & ((paraText.toLowerCase().contains("<##src")) == false) &
 										((paraText.toLowerCase().contains("<alt")) == false) & ((paraText.toLowerCase().contains("<##alt")) == false) &
@@ -858,10 +870,11 @@ public class WordToTextImpl implements WordToText {
 									if (paraText.toLowerCase().contains("<cap")) isFloatFigureCapItem = true;
 									if (paraText.toLowerCase().contains("<fnote")) isFloatFigureFnoteItem = true;
 									
+									paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 									
-									String paraFigText = fetchSourceTextFromDoc(paragraph);
+//									String paraFigText = fetchSourceTextFromDoc(paragraph);
 									if ((isFloatFigureCapItem == false) & (isFloatFigureAltItem == false) & (isFloatFigureFnoteItem == false))
-										floatItemArray = taFloatItemOrdering.floatFigureItemCheckLog(paraFigText, true);
+										floatItemArray = taFloatItemOrdering.floatFigureItemCheckLog(paraText, true);
 									
 									if (Boolean.parseBoolean(floatItemArray[0])) {
 										
@@ -898,7 +911,7 @@ public class WordToTextImpl implements WordToText {
 
 											} else {
 												
-												paraText = fetchSourceTextFromDoc(paragraph);
+//												paraText = fetchSourceTextFromDoc(paragraph);
 												taFloatItemOrdering.floatFigureSourceItemCheckLog(paraText, true, previousFloatFigLabel, Constants.outputPath + "/Log-Report/float-item/figure-main.txt");
 											}
 										}
@@ -914,10 +927,11 @@ public class WordToTextImpl implements WordToText {
 									if (paraText.toLowerCase().contains("<cap")) isFloatVideoCapItem = true;
 									if (paraText.toLowerCase().contains("<fnote")) isFloatVideoFnoteItem = true;
 									
+									paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 									
-									String paraFigText = fetchSourceTextFromDoc(paragraph);
+//									String paraFigText = fetchSourceTextFromDoc(paragraph);
 									if ((isFloatVideoCapItem == false) & (isFloatVideoAltItem == false) & (isFloatVideoFnoteItem == false))
-										floatItemArray = taFloatItemOrdering.floatVideoItemCheckLog(paraFigText, true);
+										floatItemArray = taFloatItemOrdering.floatVideoItemCheckLog(paraText, true);
 									
 									if (Boolean.parseBoolean(floatItemArray[0])) {
 										
@@ -954,7 +968,7 @@ public class WordToTextImpl implements WordToText {
 
 											} else {
 												
-												paraText = fetchSourceTextFromDoc(paragraph);
+//												paraText = fetchSourceTextFromDoc(paragraph);
 												taFloatItemOrdering.floatFigureSourceItemCheckLog(paraText, true, previousFloatVideoLabel, Constants.outputPath + "/Log-Report/float-item/video-main.txt");
 											}
 										}
@@ -970,10 +984,11 @@ public class WordToTextImpl implements WordToText {
 									if (paraText.toLowerCase().contains("<cap")) isFloatTableCapItem = true;
 									if (paraText.toLowerCase().contains("<fnote")) isFloatTableFnoteItem = true;
 									
+									paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 									
-									String paraFigText = fetchSourceTextFromDoc(paragraph);
+//									String paraFigText = fetchSourceTextFromDoc(paragraph);
 									if ((isFloatTableCapItem == false) & (isFloatTableAltItem == false) & (isFloatTableFnoteItem == false))
-										floatItemArray = taFloatItemOrdering.floatTableItemCheckLog(paraFigText, true);
+										floatItemArray = taFloatItemOrdering.floatTableItemCheckLog(paraText, true);
 									
 									if (Boolean.parseBoolean(floatItemArray[0])) {
 										
@@ -1008,11 +1023,12 @@ public class WordToTextImpl implements WordToText {
 												if (paraText.length() > 0)
 												taFloatItemOrdering.floatFigureSourceItemCheckLog(paraText, true, previousFloatTableLabel, Constants.outputPath + "/Log-Report/float-item/table-source.txt");
 
-											} else {
-												
-												paraText = fetchSourceTextFromDoc(paragraph);
-												taFloatItemOrdering.floatFigureSourceItemCheckLog(paraText, true, previousFloatTableLabel, Constants.outputPath + "/Log-Report/float-item/table-main.txt");
-											}
+											} 
+//											else {
+//												
+//												paraText = fetchSourceTextFromDoc(paragraph);
+//												taFloatItemOrdering.floatFigureSourceItemCheckLog(paraText, true, previousFloatTableLabel, Constants.outputPath + "/Log-Report/float-item/table-main.txt");
+//											}
 										}
 									}
 									
@@ -1026,10 +1042,11 @@ public class WordToTextImpl implements WordToText {
 									if (paraText.toLowerCase().contains("<cap")) isFloatBoxCapItem = true;
 									if (paraText.toLowerCase().contains("<fnote")) isFloatBoxFnoteItem = true;
 									
+									paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 									
-									String paraFigText = fetchSourceTextFromDoc(paragraph);
+//									String paraFigText = fetchSourceTextFromDoc(paragraph);
 									if ((isFloatBoxCapItem == false) & (isFloatBoxAltItem == false) & (isFloatBoxFnoteItem == false))
-										floatItemArray = taFloatItemOrdering.floatBoxItemCheckLog(paraFigText, true);
+										floatItemArray = taFloatItemOrdering.floatBoxItemCheckLog(paraText, true);
 									
 									if (Boolean.parseBoolean(floatItemArray[0])) {
 										
@@ -1075,6 +1092,7 @@ public class WordToTextImpl implements WordToText {
 								
 							} else if (Constants.isFilterTAFace) {
 								
+								paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 								isFloatItem = taFloatItemOrdering.floatItemCheckLog(paraText, true);
 							}
 							
@@ -1219,30 +1237,30 @@ public class WordToTextImpl implements WordToText {
 		
 		Document doc = new Document(docFile);
 		
-		doc.updateListLabels();
+//		doc.updateListLabels();
 		doc = documentLayoutSettings(doc);
-		
-		if (Constants.taSettingForUser.isDeleteExtraLines())
-			doc = removeAllEmptyLInesFromDoc(doc);
-		
-		
-		FindReplaceOptions options = new FindReplaceOptions(FindReplaceDirection.FORWARD);
-		
- 		doc.getRange().replace(" ", " ", options);
-		doc.getRange().replace(" .", ". ", options);
-		doc.getRange().replace(" ,", ", ", options);
-		doc.getRange().replace(" /", "/", options);
-		doc.getRange().replace("/ ", "/", options);
-		doc.getRange().replace("( ", "(", options);
-		doc.getRange().replace(" )", ")", options);
-		doc.getRange().replace("..", ".", options);
-		doc.getRange().replace(",,", ",", options);
-		doc.getRange().replace("::", ":", options);
-		doc.getRange().replace(" ...", "…", options);
-		doc.getRange().replace("...", "…", options);
+//		
+//		if (Constants.taSettingForUser.isDeleteExtraLines())
+//			doc = removeAllEmptyLInesFromDoc(doc);
 		
 		
-		doc = documentBasicFilters(doc, options);
+//		FindReplaceOptions options = new FindReplaceOptions(FindReplaceDirection.FORWARD);
+//		
+// 		doc.getRange().replace(" ", " ", options);
+//		doc.getRange().replace(" .", ". ", options);
+//		doc.getRange().replace(" ,", ", ", options);
+//		doc.getRange().replace(" /", "/", options);
+//		doc.getRange().replace("/ ", "/", options);
+//		doc.getRange().replace("( ", "(", options);
+//		doc.getRange().replace(" )", ")", options);
+//		doc.getRange().replace("..", ".", options);
+//		doc.getRange().replace(",,", ",", options);
+//		doc.getRange().replace("::", ":", options);
+//		doc.getRange().replace(" ...", "…", options);
+//		doc.getRange().replace("...", "…", options);
+//		
+//		
+//		doc = documentBasicFilters(doc, options);
 		
 //		NodeCollection nodes = doc.getChildNodes(NodeType.ANY, true);
 //		Integer paraIndex = 0;
@@ -1918,24 +1936,24 @@ public class WordToTextImpl implements WordToText {
 							charText = run.getText();
 							
 								
-								StringBuffer bufferChp = new StringBuffer();
-								StringTokenizer tokenizer = new StringTokenizer(charText);
-								while (tokenizer.hasMoreElements()) {
-									
-									
-									String object = (String) tokenizer.nextElement();
-									String firstText = "", lastText = "";
-									
-									if ((object.length() > 1) & (isStringUpperCase(object))) {
-										
-										firstText = object.substring(0, 1);
-										lastText = object.substring(1);
-										object = firstText.toUpperCase() + lastText.toLowerCase();
-									}
-									bufferChp.append(object + " ");
-								}
-								if (bufferChp.toString().length() > 1)
-									charText = bufferChp.toString();
+//								StringBuffer bufferChp = new StringBuffer();
+//								StringTokenizer tokenizer = new StringTokenizer(charText);
+//								while (tokenizer.hasMoreElements()) {
+//									
+//									
+//									String object = (String) tokenizer.nextElement();
+//									String firstText = "", lastText = "";
+//									
+//									if ((object.length() > 1) & (isStringUpperCase(object))) {
+//										
+//										firstText = object.substring(0, 1);
+//										lastText = object.substring(1);
+//										object = firstText.toUpperCase() + lastText.toLowerCase();
+//									}
+//									bufferChp.append(object + " ");
+//								}
+//								if (bufferChp.toString().length() > 1)
+//									charText = bufferChp.toString();
 							
 							charText = replaceExtraText(charText);
 							

@@ -1,5 +1,7 @@
 package com.gwtech.in.service.impl;
 
+import java.util.StringTokenizer;
+
 import org.apache.log4j.Logger;
 
 import com.gwtech.in.service.FileWriterI;
@@ -25,7 +27,6 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 	
 	
 	
-	
 	@Override
 	public String[] floatFigureItemCheckLog(String lineTxt, boolean writeStatus) throws Exception {
 		
@@ -44,7 +45,7 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 				if (writeStatus) {
 					
 					line = fileWriterI.figureCrossMarking(line);
-//					String boxLabel = "";
+	//				String boxLabel = "";
 					
 					int indexCrossRefOpen = line.indexOf("<@cross-ref-fig-open>");
 					int indexCrossRefClose = line.indexOf("<@cross-ref-fig-close>");
@@ -57,6 +58,7 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 						fileWriterI.write(lineTxt + "\n", Constants.outputPath + "/Log-Report/float-item/figure-main.txt", true);
 						isFloatItem = true;
 					}
+				
 				}
 //				isFloatItem = true;
 			}
@@ -108,21 +110,21 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 			if ((line.toLowerCase().startsWith("box")) || (line.toLowerCase().startsWith("<@bold-open>box"))) {
 				if (writeStatus) {
 					
-					
-					line = fileWriterI.boxCrossMarking(line);
-//					String boxLabel = "";
-					
-					int indexCrossRefOpen = line.indexOf("<@cross-ref-box-open>");
-					int indexCrossRefClose = line.indexOf("<@cross-ref-box-close>");
-					
-					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
+						line = fileWriterI.boxCrossMarking(line);
+	//					String boxLabel = "";
 						
-						boxLabel = line.substring((line.indexOf("<@cross-ref-box-open>") + "<@cross-ref-box-open>".length()), line.indexOf("<@cross-ref-box-close>"));
-						boxLabel = miscUtility.removeStartEndSpaces(boxLabel);
+						int indexCrossRefOpen = line.indexOf("<@cross-ref-box-open>");
+						int indexCrossRefClose = line.indexOf("<@cross-ref-box-close>");
 						
-						fileWriterI.write(lineTxt + "\n", Constants.outputPath + "/Log-Report/float-item/box-main.txt", true);
-						isFloatItem = true;
-					}
+						if ((indexCrossRefClose) > (indexCrossRefOpen)) {
+							
+							boxLabel = line.substring((line.indexOf("<@cross-ref-box-open>") + "<@cross-ref-box-open>".length()), line.indexOf("<@cross-ref-box-close>"));
+							boxLabel = miscUtility.removeStartEndSpaces(boxLabel);
+							
+							fileWriterI.write(lineTxt + "\n", Constants.outputPath + "/Log-Report/float-item/box-main.txt", true);
+							isFloatItem = true;
+						}
+					
 				}
 					
 //					fileWriterI.write(line + "\n", Constants.outputPath + "/Log-Report/float-item/box-main.txt", true);
@@ -135,7 +137,30 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 		
 		return floatItemArray;
 	}
-
+	
+	@Override
+	public String removeStyleFromFloat(String paraText) {
+		
+		StringBuffer buffer = new StringBuffer();
+		try {
+		StringTokenizer stringTokenizer = new StringTokenizer(paraText);
+		while (stringTokenizer.hasMoreElements()) {
+			
+			String object = (String) stringTokenizer.nextElement();
+			while (object.indexOf("<@") > -1) {
+				String tagName = object.substring((object.indexOf("<@") + "<@".length()), object.indexOf(">"));
+				object = object.replace("<@"+(tagName)+">", "");
+			}
+			buffer.append(object + " ");
+		}
+		paraText = buffer.toString();
+		
+		while (paraText.contains("[BREAK/]"))
+			paraText = paraText.replace("[BREAK/]", "\n");
+			
+		}catch (Exception exception) {	exception.printStackTrace();	}
+		return paraText;
+	}
 	
 	@Override
 	public String[] floatTableItemCheckLog(String lineTxt, boolean writeStatus) throws Exception {
@@ -153,20 +178,22 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 			if ((line.toLowerCase().startsWith("table")) || (line.toLowerCase().startsWith("<@bold-open>table"))) {
 				if (writeStatus) {
 					
-					line = fileWriterI.tableCrossMarking(line);
-//					String boxLabel = "";
 					
-					int indexCrossRefOpen = line.indexOf("<@cross-ref-table-open>");
-					int indexCrossRefClose = line.indexOf("<@cross-ref-table-close>");
+						line = fileWriterI.tableCrossMarking(line);
+	//					String boxLabel = "";
+						
+						int indexCrossRefOpen = line.indexOf("<@cross-ref-table-open>");
+						int indexCrossRefClose = line.indexOf("<@cross-ref-table-close>");
+						
+						if ((indexCrossRefClose) > (indexCrossRefOpen)) {
+							
+							boxLabel = line.substring((line.indexOf("<@cross-ref-table-open>") + "<@cross-ref-table-open>".length()), line.indexOf("<@cross-ref-table-close>"));
+							boxLabel = miscUtility.removeStartEndSpaces(boxLabel);
+							
+							fileWriterI.write(lineTxt + "\n", Constants.outputPath + "/Log-Report/float-item/table-main.txt", true);
+							isFloatItem = true;
+						}
 					
-					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
-						
-						boxLabel = line.substring((line.indexOf("<@cross-ref-table-open>") + "<@cross-ref-table-open>".length()), line.indexOf("<@cross-ref-table-close>"));
-						boxLabel = miscUtility.removeStartEndSpaces(boxLabel);
-						
-						fileWriterI.write(lineTxt + "\n", Constants.outputPath + "/Log-Report/float-item/table-main.txt", true);
-						isFloatItem = true;
-					}
 				}
 //					fileWriterI.write(line + "\n", Constants.outputPath + "/Log-Report/float-item/table-main.txt", true);
 //				isFloatItem = true;
@@ -196,20 +223,22 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 			if ((line.toLowerCase().startsWith("video")) || (line.toLowerCase().startsWith("<@bold-open>video"))) {
 				if (writeStatus) {
 					
-					line = fileWriterI.videoCrossMarking(line);
-//					String boxLabel = "";
 					
-					int indexCrossRefOpen = line.indexOf("<@cross-ref-video-open>");
-					int indexCrossRefClose = line.indexOf("<@cross-ref-video-close>");
+						line = fileWriterI.videoCrossMarking(line);
+	//					String boxLabel = "";
+						
+						int indexCrossRefOpen = line.indexOf("<@cross-ref-video-open>");
+						int indexCrossRefClose = line.indexOf("<@cross-ref-video-close>");
+						
+						if ((indexCrossRefClose) > (indexCrossRefOpen)) {
+							
+							boxLabel = line.substring((line.indexOf("<@cross-ref-video-open>") + "<@cross-ref-video-open>".length()), line.indexOf("<@cross-ref-video-close>"));
+							boxLabel = miscUtility.removeStartEndSpaces(boxLabel);
+							
+							fileWriterI.write(lineTxt + "\n", Constants.outputPath + "/Log-Report/float-item/video-main.txt", true);
+							isFloatItem = true;
+						}
 					
-					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
-						
-						boxLabel = line.substring((line.indexOf("<@cross-ref-video-open>") + "<@cross-ref-video-open>".length()), line.indexOf("<@cross-ref-video-close>"));
-						boxLabel = miscUtility.removeStartEndSpaces(boxLabel);
-						
-						fileWriterI.write(lineTxt + "\n", Constants.outputPath + "/Log-Report/float-item/video-main.txt", true);
-						isFloatItem = true;
-					}
 				}
 //				fileWriterI.write(line + "\n", Constants.outputPath + "/Log-Report/float-item/video-main.txt", true);
 //				isFloatItem = true;
@@ -232,6 +261,7 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 		
 		if (line.startsWith("<@"))
 			line = line.substring(line.indexOf(">")+1);
+		
 		
 		if ((line.toLowerCase().startsWith("fig")) || (line.toLowerCase().startsWith("<@bold-open>fig"))) { //Fig. 1.1
 			

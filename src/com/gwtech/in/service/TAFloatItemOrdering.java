@@ -11,4 +11,5 @@ public interface TAFloatItemOrdering {
 	public String[] floatBoxItemCheckLog(String lineTxt, boolean writeStatus) throws Exception;
 	public String[] floatTableItemCheckLog(String lineTxt, boolean writeStatus) throws Exception;
 	public String[] floatVideoItemCheckLog(String lineTxt, boolean writeStatus) throws Exception;
+	public String removeStyleFromFloat(String paraText);
 }

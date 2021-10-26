@@ -183,9 +183,6 @@ public class FileWriterImpl implements FileWriterI {
 //				filter for TA assistance
 //				delete double spaces
 				
-				if (line.contains("Specific Details of the Chest Pain History"))
-					logger.debug(line);
-
 				
 				while (line.contains("  "))	line = line.replace("  ", " ");
 				line = line.replace("[[[SOFT-BREAK-ENTRY]]][[[SOFT-BREAK-ENTRY]]]", "[[[SOFT-BREAK-ENTRY]]]");
@@ -242,8 +239,23 @@ public class FileWriterImpl implements FileWriterI {
 		
 		/**
 		 * multiple occurance handling
-		 * 
+		 * <@cross-ref-fig-open>
 		 */
+		
+		line = line.replace("<@cross-ref-fig-open><@cross-ref-fig-open>", "<@cross-ref-fig-open>");
+		line = line.replace("<@cross-ref-fig-close><@cross-ref-fig-close>", "<@cross-ref-fig-close>");
+		
+		if (line.contains("<@cross-ref-fig-open>"))
+			return line;
+		
+//		FIGURE 5-1A
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig\\. $1\\-$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig $1\\-$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure\\. $1\\-$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure $1\\-$2$3<@cross-ref-fig-close>");
+		
+		if (line.contains("<@cross-ref-fig-open>"))
+			return line;
 		
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\—$2<@cross-ref-fig-close>"); // em-dash
@@ -354,11 +366,50 @@ public class FileWriterImpl implements FileWriterI {
 		line = line.replaceAll("(?i)Figure E([0-9]+)\\– ([0-9]+)", "<@cross-ref-fig-open>Figure E$1\\–$2<@cross-ref-fig-close>"); // en-dash
 		line = line.replaceAll("(?i)Figure E([0-9]+)\\. ([0-9]+)", "<@cross-ref-fig-open>Figure E$1\\.$2<@cross-ref-fig-close>"); // simple period
 		
+		//FIGURE 51A.1
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1$2\\.$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig $1$2\\.$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1$2\\.$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure $1$2\\.$3<@cross-ref-fig-close>");
+		
+		//FIGURE 51.1A
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig $1\\.$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure $1\\.$2$3<@cross-ref-fig-close>");
+		
+		
+		//FIGURE E51A.1
+		line = line.replaceAll("(?i)Fig\\. E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig\\. E$1$2\\.$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig E$1$2\\.$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure\\. E$1$2\\.$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure E$1$2\\.$3<@cross-ref-fig-close>");
+		
+		//FIGURE E51.1A
+		line = line.replaceAll("(?i)Fig\\. E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig\\. E$1\\.$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig E$1\\.$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure\\. E$1\\.$2$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure E$1\\.$2$3<@cross-ref-fig-close>");
+
+		
+		
+//		FIGURE 5A-1A
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig\\. $1$2\\-$3$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig $1$2\\-$3$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure\\. $1$2\\-$3$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure $1$2\\-$3$4<@cross-ref-fig-close>");
+		
+//		FIGURE E5A-1A
+		line = line.replaceAll("(?i)Fig\\. E([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig\\. E$1$2\\-$3$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig E([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig E$1$2\\-$3$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. E([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure\\. E$1$2\\-$3$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure E([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure E$1$2\\-$3$4<@cross-ref-fig-close>");
 
 		
 		
 		if (line.contains("<@cross-ref-fig-open>"))	isFound = true;
 		if (!isFound) {
+			
 			
 			/**
 			 * single occurance handling
@@ -656,6 +707,8 @@ public class FileWriterImpl implements FileWriterI {
 				line = line.replaceAll("(?i)Figures\\. E([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$2<@cross-ref-fig-close>"); // simple dash
 				line = line.replaceAll("(?i)Figures E([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)", "<@cross-ref-fig-open>Figures $1<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$2<@cross-ref-fig-close>"); // simple dash
 
+			} else {
+				break;
 			}
 			
 		}
@@ -667,6 +720,13 @@ public class FileWriterImpl implements FileWriterI {
 		boolean isFound = false;
 		
 		line = handleTableRangesDelimeters(line);
+		
+		line = line.replace("<@cross-ref-table-open><@cross-ref-table-open>", "<@cross-ref-table-open>");
+		line = line.replace("<@cross-ref-table-close><@cross-ref-table-close>", "<@cross-ref-table-close>");
+		
+		if (line.contains("<@cross-ref-table-open>"))
+			return line;
+		
 		
 		/**
 		 * multiple occurance handling
@@ -731,8 +791,30 @@ public class FileWriterImpl implements FileWriterI {
 		line = line.replaceAll("(?i)Table E([0-9]+)\\. ([0-9]+)", "<@cross-ref-table-open>Table E$1\\.$2<@cross-ref-table-close>"); // simple period
 
 		
+		//Table 51A.1
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-table-open>Table\\. $1$2\\.$3<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-table-open>Table $1$2\\.$3<@cross-ref-table-close>");
+		
+		//Table 51.1A
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-table-open>Table\\. $1\\.$2$3<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-table-open>Table $1\\.$2$3<@cross-ref-table-close>");
+		
+		
+		//Table E51A.1
+		line = line.replaceAll("(?i)Table\\. E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-table-open>Table\\. $1$2\\.$3<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-table-open>Table $1$2\\.$3<@cross-ref-table-close>");
+		
+		//Table E51.1A
+		line = line.replaceAll("(?i)Table\\. E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-table-open>Table\\. $1\\.$2$3<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-table-open>Table $1\\.$2$3<@cross-ref-table-close>");
+
+
+		
 		if (line.contains("<@cross-ref-table-open>"))	isFound = true;
 		if ( ! isFound) {
+			
+			
+			
 			/**
 			 * single occurance handling
 			 * 
@@ -747,6 +829,7 @@ public class FileWriterImpl implements FileWriterI {
 			
 			line = line.replaceAll("(?i)Table\\. E([0-9]+)", "<@cross-ref-table-open>Table\\. E$1<@cross-ref-table-close>");
 			line = line.replaceAll("(?i)Table E([0-9]+)", "<@cross-ref-table-open>Table E$1<@cross-ref-table-close>");
+			
 		}
 		return line;
 	}
@@ -978,6 +1061,8 @@ public class FileWriterImpl implements FileWriterI {
 				line = line.replaceAll("(?i)Table E([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)", "<@cross-ref-table-open>Table $1<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$2<@cross-ref-table-close>"); // simple dash
 				line = line.replaceAll("(?i)Tables\\. E([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)", "<@cross-ref-table-open>Tables\\. $1<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$2<@cross-ref-table-close>"); // simple dash
 				line = line.replaceAll("(?i)Tables E([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)", "<@cross-ref-table-open>Tables $1<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$2<@cross-ref-table-close>"); // simple dash
+			} else {
+				break;
 			}
 		}
 		return line;
@@ -988,6 +1073,12 @@ public class FileWriterImpl implements FileWriterI {
 		boolean isFound = false;
 		
 		line = handleBoxRangesDelimeters(line);
+		
+		line = line.replace("<@cross-ref-box-open><@cross-ref-box-open>", "<@cross-ref-box-open>");
+		line = line.replace("<@cross-ref-box-close><@cross-ref-box-close>", "<@cross-ref-box-close>");
+		
+		if (line.contains("<@cross-ref-box-open>"))
+			return line;
 		
 		/**
 		 * multiple occurance handling
@@ -1058,8 +1149,30 @@ public class FileWriterImpl implements FileWriterI {
 		line = line.replaceAll("(?i)Box E([0-9]+)\\. ([0-9]+)", "<@cross-ref-box-open>Box E$1\\.$2<@cross-ref-box-close>"); // simple period
 
 		
+		//Box 51A.1
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-box-open>Box\\. $1$2\\.$3<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-box-open>Box $1$2\\.$3<@cross-ref-box-close>");
+		
+		//Box 51.1A
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-box-open>Box\\. $1\\.$2$3<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-box-open>Box $1\\.$2$3<@cross-ref-box-close>");
+		
+		
+		//Box E51A.1
+		line = line.replaceAll("(?i)Box\\. E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-box-open>Box\\. $1$2\\.$3<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-box-open>Box $1$2\\.$3<@cross-ref-box-close>");
+		
+		//Box E51.1A
+		line = line.replaceAll("(?i)Box\\. E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-box-open>Box\\. $1\\.$2$3<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-box-open>Box $1\\.$2$3<@cross-ref-box-close>");
+
+
+		
 		if (line.contains("<@cross-ref-box-open>"))	isFound = true;
 		if (! isFound) {
+			
+
+			
 			/**
 			 * single occurance handling
 			 * 
@@ -1236,6 +1349,8 @@ public class FileWriterImpl implements FileWriterI {
 				line = line.replaceAll("(?i)Box E([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)", "<@cross-ref-box-open>Box $1<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$2<@cross-ref-box-close>"); // simple dash
 				line = line.replaceAll("(?i)Boxs\\. E([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$2<@cross-ref-box-close>"); // simple dash
 				line = line.replaceAll("(?i)Boxs E([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)", "<@cross-ref-box-open>Boxs $1<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$2<@cross-ref-box-close>"); // simple dash
+			} else {
+				break;
 			}
 		}
 		
@@ -1247,6 +1362,12 @@ public class FileWriterImpl implements FileWriterI {
 		boolean isFound = false;
 		
 		line = handleVideoRangesDelimeters(line);
+		
+		line = line.replace("<@cross-ref-video-open><@cross-ref-video-open>", "<@cross-ref-video-open>");
+		line = line.replace("<@cross-ref-video-close><@cross-ref-video-close>", "<@cross-ref-video-close>");
+		
+		if (line.contains("<@cross-ref-video-open>"))
+			return line;
 		
 		/**
 		 * multiple occurance handling
@@ -1306,9 +1427,30 @@ public class FileWriterImpl implements FileWriterI {
 		line = line.replaceAll("(?i)Video E([0-9]+)\\–([0-9]+)", "<@cross-ref-video-open>Video E$1\\–$2<@cross-ref-video-close>"); // en-dash
 		line = line.replaceAll("(?i)Video E([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Video E$1\\.$2<@cross-ref-video-close>"); // simple period
 
+		//Video 51A.1
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-video-open>Video\\. $1$2\\.$3<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video ([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-video-open>Video $1$2\\.$3<@cross-ref-video-close>");
+		
+		//Video 51.1A
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-video-open>Video\\. $1\\.$2$3<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-video-open>Video $1\\.$2$3<@cross-ref-video-close>");
+		
+		
+		//Video E51A.1
+		line = line.replaceAll("(?i)Video\\. E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-video-open>Video\\. $1$2\\.$3<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video E([0-9]+)([a-z]+)\\.([0-9]+)", "<@cross-ref-video-open>Video $1$2\\.$3<@cross-ref-video-close>");
+		
+		//Video E51.1A
+		line = line.replaceAll("(?i)Video\\. E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-video-open>Video\\. $1\\.$2$3<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video E([0-9]+)\\.([0-9]+)([a-z]+)", "<@cross-ref-video-open>Video $1\\.$2$3<@cross-ref-video-close>");
+		
+		
 		
 		if (line.contains("<@cross-ref-video-open>"))	isFound = true;
 		if (! isFound) {
+			
+			
+			
 			/**
 			 * single occurance handling
 			 * 
@@ -1447,6 +1589,8 @@ public class FileWriterImpl implements FileWriterI {
 				
 				line = line.replaceAll("(?i)Video\\. E([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)", "<@cross-ref-video-open>Video\\. $1<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$2<@cross-ref-video-close>"); // simple dash
 				line = line.replaceAll("(?i)Video E([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)", "<@cross-ref-video-open>Video $1<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$2<@cross-ref-video-close>"); // simple dash
+			} else {
+				break;
 			}
 		}
 		return line;

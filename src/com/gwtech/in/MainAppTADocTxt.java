@@ -59,7 +59,7 @@ public class MainAppTADocTxt {
 			Constants.projectAuthor = args[3];
 			
 			if (Constants.ISBN.contains("-")) {
-				Constants.ISBN = Constants.ISBN.substring((Constants.ISBN.indexOf("-")) + 1);
+				Constants.ISBN = Constants.ISBN.substring((Constants.ISBN.lastIndexOf("-")) + 1);
 				Constants.projectAuthor = (Constants.projectAuthor).substring(0, (Constants.projectAuthor.lastIndexOf("-")));
 			}
 			

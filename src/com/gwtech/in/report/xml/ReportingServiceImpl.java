@@ -60,6 +60,7 @@ public class ReportingServiceImpl implements ReportingService {
 				if (paragraph != null) {
 					
 					String paraText = paragraph.getText();
+					paraText = paraText.trim();
 					
 					if (paraText.toLowerCase().contains("<chap au>"))
 						logger.debug(paraText);
@@ -89,33 +90,46 @@ public class ReportingServiceImpl implements ReportingService {
 						
 						paraText = wordToText.fetchChapterTitleSourceTextFromDoc(paragraph);
 						
-						
-						
 						paraText = miscUtility.removeExtraSpaces(paraText);
 						paraText = miscUtility.removeStartEndSpaces(paraText);
 						paraText = miscUtility.removeReturnUnit(paraText);
 						paraText = miscUtility.replaceUnknownCharBox(paraText);
 						paraText = miscUtility.removeExtraSpaces(paraText);
 						
-						if (paraText.indexOf("<CHAP TITLE>") > -1)
-							paraText = paraText.substring((paraText.indexOf("<CHAP TITLE>") + "<CHAP TITLE>".length()));
-						else if (paraText.indexOf("<chap title>") > -1)
-							paraText = paraText.substring((paraText.indexOf("<chap title>") + "<chap title>".length()));
+						if (paraText.indexOf("<CHAP TITLE>") > -1) {
+							
+							paraText = paraText.replace("<CHAP TITLE>", "");
+						}
+						else if (paraText.indexOf("<chap title>") > -1) {
+							
+							paraText = paraText.replace("<chap title>", "");
+//							paraText = paraText.substring((paraText.indexOf("<chap title>") + "<chap title>".length()));
+						}
 						
-						if (paraText.toLowerCase().contains("<@su"))
-							paraText = paraText.substring(0, (paraText.indexOf("<@su")));
-						
-						
+//						if (paraText.toLowerCase().contains("<@su"))
+//							paraText = paraText.substring(0, (paraText.indexOf("<@su")));
+//						
+						while (paraText.contains("<@")) {
+							String tagName = paraText.substring((paraText.indexOf("<@") + "<@".length()), paraText.indexOf(">"));
+							paraText = paraText.replace("<@"+(tagName)+">", "");
+						}
+
 						
 						result[0] = paraText;
 						isBodyActive = true;
 						
 					} else if (paraText.toLowerCase().startsWith("<chap au>")) {
 						
-						if (paraText.indexOf("<CHAP AU>") > -1)
-							paraText = paraText.substring((paraText.indexOf("<CHAP AU>") + "<CHAP AU>".length()));
-						else if (paraText.indexOf("<chap au>") > -1)
-							paraText = paraText.substring((paraText.indexOf("<chap au>") + "<chap au>".length()));
+						if (paraText.indexOf("<CHAP AU>") > -1) {
+							
+							paraText = paraText.replace("<CHAP AU>", "");
+//							paraText = paraText.substring((paraText.indexOf("<CHAP AU>") + "<CHAP AU>".length()));
+						}
+						else if (paraText.indexOf("<chap au>") > -1) {
+							
+							paraText = paraText.replace("<chap au>", "");
+//							paraText = paraText.substring((paraText.indexOf("<chap au>") + "<chap au>".length()));
+						}
 						result[1] = paraText;
 						
 					} else if ((paraText.toLowerCase().startsWith("<chap ")) & ((paraText.toLowerCase().contains("outline")) == false)) {
