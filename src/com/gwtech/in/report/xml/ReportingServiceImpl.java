@@ -132,7 +132,7 @@ public class ReportingServiceImpl implements ReportingService {
 						}
 						result[1] = paraText;
 						
-					} else if ((paraText.toLowerCase().startsWith("<chap ")) & ((paraText.toLowerCase().contains("outline")) == false)) {
+					} else if ((paraText.toLowerCase().startsWith("<chap ")) & ((paraText.toLowerCase().contains("outline")) == false) & (paraText.toLowerCase().contains("itle>") == false)) {
 						
 						paraText = paraText.substring(0, (paraText.indexOf(">") + 1));
 						String chapNoInfo = "";

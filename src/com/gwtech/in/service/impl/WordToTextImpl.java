@@ -18,6 +18,7 @@ import com.aspose.words.Cell;
 import com.aspose.words.Comment;
 import com.aspose.words.ControlChar;
 import com.aspose.words.ConvertUtil;
+import com.aspose.words.DocSaveOptions;
 import com.aspose.words.Document;
 import com.aspose.words.DocumentBuilder;
 import com.aspose.words.Field;
@@ -816,10 +817,10 @@ public class WordToTextImpl implements WordToText {
 								if (
 										(paraText.toLowerCase().startsWith("<")) & 
 										(isFloatFigureItem) & 
-										((paraText.toLowerCase().contains("<src")) == false) & ((paraText.toLowerCase().contains("<##src")) == false) &
-										((paraText.toLowerCase().contains("<alt")) == false) & ((paraText.toLowerCase().contains("<##alt")) == false) &
-										((paraText.toLowerCase().contains("<cap")) == false) & ((paraText.toLowerCase().contains("<##cap")) == false) &
-										((paraText.toLowerCase().contains("<fnote")) == false) & ((paraText.toLowerCase().contains("<##fnote")) == false)
+										((paraText.toLowerCase().contains("<src>")) == false) & ((paraText.toLowerCase().contains("<##src>")) == false) &
+										((paraText.toLowerCase().contains("<alt>")) == false) & ((paraText.toLowerCase().contains("<##alt>")) == false) &
+										((paraText.toLowerCase().contains("<cap>")) == false) & ((paraText.toLowerCase().contains("<##cap>")) == false) &
+										((paraText.toLowerCase().contains("<fnote>")) == false) & ((paraText.toLowerCase().contains("<##fnote>")) == false)
 										) {
 									isFloatFigureItem = false;
 									previousFloatFigLabel = "";
@@ -830,10 +831,10 @@ public class WordToTextImpl implements WordToText {
 								if (
 										(paraText.toLowerCase().startsWith("<")) & 
 										(isFloatVideoItem) & 
-										((paraText.toLowerCase().contains("<src")) == false) & ((paraText.toLowerCase().contains("<##src")) == false) &
-										((paraText.toLowerCase().contains("<alt")) == false) & ((paraText.toLowerCase().contains("<##alt")) == false) &
-										((paraText.toLowerCase().contains("<cap")) == false) & ((paraText.toLowerCase().contains("<##cap")) == false) &
-										((paraText.toLowerCase().contains("<fnote")) == false) & ((paraText.toLowerCase().contains("<##fnote")) == false)
+										((paraText.toLowerCase().contains("<src>")) == false) & ((paraText.toLowerCase().contains("<##src>")) == false) &
+										((paraText.toLowerCase().contains("<alt>")) == false) & ((paraText.toLowerCase().contains("<##alt>")) == false) &
+										((paraText.toLowerCase().contains("<cap>")) == false) & ((paraText.toLowerCase().contains("<##cap>")) == false) &
+										((paraText.toLowerCase().contains("<fnote>")) == false) & ((paraText.toLowerCase().contains("<##fnote>")) == false)
 										) {
 									
 									isFloatVideoItem = false;
@@ -866,9 +867,9 @@ public class WordToTextImpl implements WordToText {
 								
 								if (isFloatFigureItem)	{
 									
-									if (paraText.toLowerCase().contains("<alt")) isFloatFigureAltItem = true;
-									if (paraText.toLowerCase().contains("<cap")) isFloatFigureCapItem = true;
-									if (paraText.toLowerCase().contains("<fnote")) isFloatFigureFnoteItem = true;
+									if (paraText.toLowerCase().contains("<alt>")) isFloatFigureAltItem = true;
+									if (paraText.toLowerCase().contains("<cap>")) isFloatFigureCapItem = true;
+									if (paraText.toLowerCase().contains("<fnote>")) isFloatFigureFnoteItem = true;
 									
 									paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 									
@@ -917,15 +918,15 @@ public class WordToTextImpl implements WordToText {
 										}
 									}
 									
-									if (paraText.toLowerCase().contains("<##cap")) isFloatFigureCapItem = false;
-									if (paraText.toLowerCase().contains("<##alt")) isFloatFigureAltItem = false;
-									if (paraText.toLowerCase().contains("<##fnote")) isFloatFigureFnoteItem = false;
+									if (paraText.toLowerCase().contains("<##cap>")) isFloatFigureCapItem = false;
+									if (paraText.toLowerCase().contains("<##alt>")) isFloatFigureAltItem = false;
+									if (paraText.toLowerCase().contains("<##fnote>")) isFloatFigureFnoteItem = false;
 								}
 								if (isFloatVideoItem)	{
 									
-									if (paraText.toLowerCase().contains("<alt")) isFloatVideoAltItem = true;
-									if (paraText.toLowerCase().contains("<cap")) isFloatVideoCapItem = true;
-									if (paraText.toLowerCase().contains("<fnote")) isFloatVideoFnoteItem = true;
+									if (paraText.toLowerCase().contains("<alt>")) isFloatVideoAltItem = true;
+									if (paraText.toLowerCase().contains("<cap>")) isFloatVideoCapItem = true;
+									if (paraText.toLowerCase().contains("<fnote>")) isFloatVideoFnoteItem = true;
 									
 									paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 									
@@ -974,15 +975,15 @@ public class WordToTextImpl implements WordToText {
 										}
 									}
 									
-									if (paraText.toLowerCase().contains("<##cap")) isFloatVideoCapItem = false;
-									if (paraText.toLowerCase().contains("<##alt")) isFloatVideoAltItem = false;
-									if (paraText.toLowerCase().contains("<##fnote")) isFloatVideoFnoteItem = false;
+									if (paraText.toLowerCase().contains("<##cap>")) isFloatVideoCapItem = false;
+									if (paraText.toLowerCase().contains("<##alt>")) isFloatVideoAltItem = false;
+									if (paraText.toLowerCase().contains("<##fnote>")) isFloatVideoFnoteItem = false;
 								}
 								if (isFloatTableItem)	{
 									
-									if (paraText.toLowerCase().contains("<alt")) isFloatTableAltItem = true;
-									if (paraText.toLowerCase().contains("<cap")) isFloatTableCapItem = true;
-									if (paraText.toLowerCase().contains("<fnote")) isFloatTableFnoteItem = true;
+									if (paraText.toLowerCase().contains("<alt>")) isFloatTableAltItem = true;
+									if (paraText.toLowerCase().contains("<cap>")) isFloatTableCapItem = true;
+									if (paraText.toLowerCase().contains("<fnote>")) isFloatTableFnoteItem = true;
 									
 									paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 									
@@ -1032,15 +1033,15 @@ public class WordToTextImpl implements WordToText {
 										}
 									}
 									
-									if (paraText.toLowerCase().contains("<##cap")) isFloatTableCapItem = false;
-									if (paraText.toLowerCase().contains("<##alt")) isFloatTableAltItem = false;
-									if (paraText.toLowerCase().contains("<##fnote")) isFloatTableFnoteItem = false;
+									if (paraText.toLowerCase().contains("<##cap>")) isFloatTableCapItem = false;
+									if (paraText.toLowerCase().contains("<##alt>")) isFloatTableAltItem = false;
+									if (paraText.toLowerCase().contains("<##fnote>")) isFloatTableFnoteItem = false;
 								}
 								if (isFloatBoxItem)	{
 									
-									if (paraText.toLowerCase().contains("<alt")) isFloatBoxAltItem = true;
-									if (paraText.toLowerCase().contains("<cap")) isFloatBoxCapItem = true;
-									if (paraText.toLowerCase().contains("<fnote")) isFloatBoxFnoteItem = true;
+									if (paraText.toLowerCase().contains("<alt>")) isFloatBoxAltItem = true;
+									if (paraText.toLowerCase().contains("<cap>")) isFloatBoxCapItem = true;
+									if (paraText.toLowerCase().contains("<fnote>")) isFloatBoxFnoteItem = true;
 									
 									paraText = taFloatItemOrdering.removeStyleFromFloat(paraText);
 									
@@ -1085,9 +1086,9 @@ public class WordToTextImpl implements WordToText {
 										}
 									}
 									
-									if (paraText.toLowerCase().contains("<##cap")) isFloatBoxCapItem = false;
-									if (paraText.toLowerCase().contains("<##alt")) isFloatBoxAltItem = false;
-									if (paraText.toLowerCase().contains("<##fnote")) isFloatBoxFnoteItem = false;
+									if (paraText.toLowerCase().contains("<##cap>")) isFloatBoxCapItem = false;
+									if (paraText.toLowerCase().contains("<##alt>")) isFloatBoxAltItem = false;
+									if (paraText.toLowerCase().contains("<##fnote>")) isFloatBoxFnoteItem = false;
 								}
 								
 							} else if (Constants.isFilterTAFace) {
@@ -2115,10 +2116,10 @@ public class WordToTextImpl implements WordToText {
 		this.taLogReport = taLogReport;
 	}
 
-	public void convertToDocx(String inDocFile, String outDocFile) {
+	public void convertToDocx(String inDocFile, String outDocFile, String extension) {
 		try {
 			Document doc = new Document(inDocFile);
-			doc.save(outDocFile, SaveFormat.DOCX);
+			doc.save(outDocFile + extension, SaveFormat.DOCX);
 		}catch(Exception exception) {	System.out.println(exception.getMessage());	}
 	}
 	public void setHeaderFooterOperation(HeaderFooterOperation headerFooterOperation) {
