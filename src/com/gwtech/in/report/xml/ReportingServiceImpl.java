@@ -113,7 +113,7 @@ public class ReportingServiceImpl implements ReportingService {
 							String tagName = paraText.substring((paraText.indexOf("<@") + "<@".length()), paraText.indexOf(">"));
 							paraText = paraText.replace("<@"+(tagName)+">", "");
 						}
-
+						
 						
 						result[0] = paraText;
 						isBodyActive = true;

@@ -234,6 +234,7 @@ public class FileWriterImpl implements FileWriterI {
 		
 		boolean isFound = false;
 		
+		if (! Constants.isReportingFace)
 		line = handleFigRangesDelimeters(line);
 		
 		
@@ -249,6 +250,8 @@ public class FileWriterImpl implements FileWriterI {
 			return line;
 		
 //		FIGURE 5-1A
+		
+		line = line.replaceAll("(?i)Fig\\.([0-9]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig\\.$1\\-$2$3<@cross-ref-fig-close>");
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig\\. $1\\-$2$3<@cross-ref-fig-close>");
 		line = line.replaceAll("(?i)Fig ([0-9]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Fig $1\\-$2$3<@cross-ref-fig-close>");
 		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure\\. $1\\-$2$3<@cross-ref-fig-close>");
@@ -257,22 +260,26 @@ public class FileWriterImpl implements FileWriterI {
 		if (line.contains("<@cross-ref-fig-open>"))
 			return line;
 		
+		line = line.replaceAll("(?i)Fig\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\.$1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\—$2<@cross-ref-fig-close>"); // em-dash
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\–([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\–$2<@cross-ref-fig-close>"); // en-dash
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2<@cross-ref-fig-close>"); // simple period
 		
+		line = line.replaceAll("(?i)Fig([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig$1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Fig ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig $1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Fig ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Fig $1\\—$2<@cross-ref-fig-close>"); // em-dash
 		line = line.replaceAll("(?i)Fig ([0-9]+)\\–([0-9]+)", "<@cross-ref-fig-open>Fig $1\\–$2<@cross-ref-fig-close>"); // en-dash
 		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2<@cross-ref-fig-close>"); // simple period
 		
 		
+		line = line.replaceAll("(?i)Figure\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\.$1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\—$2<@cross-ref-fig-close>"); // em-dash
 		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\–([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\–$2<@cross-ref-fig-close>"); // en-dash
 		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2<@cross-ref-fig-close>"); // simple period
 		
+		line = line.replaceAll("(?i)Figure([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure$1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Figure ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure $1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Figure ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figure $1\\—$2<@cross-ref-fig-close>"); // em-dash
 		line = line.replaceAll("(?i)Figure ([0-9]+)\\–([0-9]+)", "<@cross-ref-fig-open>Figure $1\\–$2<@cross-ref-fig-close>"); // en-dash
@@ -284,7 +291,6 @@ public class FileWriterImpl implements FileWriterI {
 		 * single space handling
 		 * 
 		 */
-		
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\- ([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\-$2<@cross-ref-fig-close>"); // simple dash
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\— ([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\—$2<@cross-ref-fig-close>"); // em-dash
 		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\– ([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\–$2<@cross-ref-fig-close>"); // en-dash
@@ -719,7 +725,8 @@ public class FileWriterImpl implements FileWriterI {
 		
 		boolean isFound = false;
 		
-		line = handleTableRangesDelimeters(line);
+		if (! Constants.isReportingFace)
+			line = handleTableRangesDelimeters(line);
 		
 		line = line.replace("<@cross-ref-table-open><@cross-ref-table-open>", "<@cross-ref-table-open>");
 		line = line.replace("<@cross-ref-table-close><@cross-ref-table-close>", "<@cross-ref-table-close>");
@@ -1072,7 +1079,8 @@ public class FileWriterImpl implements FileWriterI {
 		
 		boolean isFound = false;
 		
-		line = handleBoxRangesDelimeters(line);
+		if (! Constants.isReportingFace)
+			line = handleBoxRangesDelimeters(line);
 		
 		line = line.replace("<@cross-ref-box-open><@cross-ref-box-open>", "<@cross-ref-box-open>");
 		line = line.replace("<@cross-ref-box-close><@cross-ref-box-close>", "<@cross-ref-box-close>");
@@ -1361,7 +1369,8 @@ public class FileWriterImpl implements FileWriterI {
 		
 		boolean isFound = false;
 		
-		line = handleVideoRangesDelimeters(line);
+		if (! Constants.isReportingFace)
+			line = handleVideoRangesDelimeters(line);
 		
 		line = line.replace("<@cross-ref-video-open><@cross-ref-video-open>", "<@cross-ref-video-open>");
 		line = line.replace("<@cross-ref-video-close><@cross-ref-video-close>", "<@cross-ref-video-close>");

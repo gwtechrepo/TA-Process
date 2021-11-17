@@ -45,7 +45,9 @@ public class TAFloatItemOrderingImpl implements TAFloatItemOrdering {
 				if (writeStatus) {
 					
 					line = fileWriterI.figureCrossMarking(line);
-	//				String boxLabel = "";
+	//				String boxLabel = "";Fig. 15. 16: Cholangiographic presentations in patient in Fig. 14 and 15 presenting with painless jaundice 
+					
+					
 					
 					int indexCrossRefOpen = line.indexOf("<@cross-ref-fig-open>");
 					int indexCrossRefClose = line.indexOf("<@cross-ref-fig-close>");

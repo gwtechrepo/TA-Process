@@ -197,12 +197,13 @@ public class WordToTextImpl implements WordToText {
 		if (Constants.taSettingForUser.isRemoveHeadersFooters())	headerFooterOperation.removeFooterFromDocFile(docFile, docFile);
 		
 		Document doc = new Document(docFile);
-		doc.getRange().getFormFields().clear(); // Unlink a field
+		try {	doc.getRange().getFormFields().clear();	}catch (Exception exception) {		} // Unlink a field
+		
 		
 		RemoveHiddenContentVisitor hiddenContentRemover = new RemoveHiddenContentVisitor();
-	    doc.accept(hiddenContentRemover);
-	    doc.acceptAllRevisions();
-	    doc.removeMacros();
+		try {	doc.accept(hiddenContentRemover);	}catch (Exception exception) {		}
+		try {	doc.acceptAllRevisions();	}catch (Exception exception) {		}
+		try {	doc.removeMacros();	}catch (Exception exception) {		}
 		
 		docFile = coverTAFiltering(docFile, docFile, false);
 		if (Constants.taSettingForUser.isRemoveHeadersFooters())
@@ -811,7 +812,7 @@ public class WordToTextImpl implements WordToText {
 								 * un-num/display ends float items
 								 */
 						        
-								if (paraText.toLowerCase().contains("bismuth-corlette classification scheme of biliary strictures. (see ch. 42"))
+								if (paraText.toLowerCase().contains("linear eus image (7.5 mhz) of fnb of a mass at the distal bile du"))
 									logger.debug("<figure legends>");
 								
 								if (
@@ -825,7 +826,7 @@ public class WordToTextImpl implements WordToText {
 									isFloatFigureItem = false;
 									previousFloatFigLabel = "";
 								}
-								if (paraText.toLowerCase().contains("<figure legends>"))
+								if ((paraText.toLowerCase().contains("<figure legends>")) || (paraText.toLowerCase().contains("<figure legend>")))
 									isFloatFigureItem = true;
 								
 								if (
@@ -840,7 +841,7 @@ public class WordToTextImpl implements WordToText {
 									isFloatVideoItem = false;
 									previousFloatVideoLabel = "";
 								}
-								if (paraText.toLowerCase().contains("<video"))
+								if ((paraText.toLowerCase().contains("<video")) || ((paraText.toLowerCase().startsWith("<")) & (paraText.toLowerCase().contains("video legend")))) //Video Legends
 									isFloatVideoItem = true;
 								
 								if ((paraText.toLowerCase().contains("<## table>")) & (isFloatTableItem)) {
