@@ -457,23 +457,23 @@ public class WordToTextImpl implements WordToText {
 			        		String[] splitTableCell = unNumCellText.split("\n");
 			        		for (String tableCellval: splitTableCell) {
 			        			
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("unn fig"))) {
+						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("fig"))) {
 									
 									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/figure-unnum.txt", true);
 								}
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("numbered equation"))) {
+						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("num")) & (tableCellval.toLowerCase().contains("eq"))) {
 									
 									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/figure-num-equation.txt", true);
 								}
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("unn table"))) {
+						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("table"))) {
 									
 									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/table-unnum.txt", true);
 								}
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("unn box"))) {
+						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("box"))) {
 									
 									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/box-unnum.txt", true);
 								}
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("unn video"))) {
+						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("video"))) {
 									
 									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/video-unnum.txt", true);
 								}
@@ -785,25 +785,25 @@ public class WordToTextImpl implements WordToText {
 								 * un-num/display start float items
 								 */
 								
-								if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("unn fig"))) {
+								if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("un")) & (paraText.toLowerCase().contains("fig"))) {
 									
 									fileWriterI.write("\n"+paraText, Constants.outputPath + "/Resource/figure-unnum.txt", true);
 								}
 								
-								if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("numbered equation"))) {
+								if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("num")) & (paraText.toLowerCase().contains("eq"))) {
 									
 									fileWriterI.write("\n"+paraText, Constants.outputPath + "/Resource/figure-num-equation.txt", true);
 								}
 								
-						        if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("unn table"))) {
+						        if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("un")) & (paraText.toLowerCase().contains("table"))) {
 									
 									fileWriterI.write("\n"+paraText, Constants.outputPath + "/Resource/table-unnum.txt", true);
 								}
-						        if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("unn box"))) {
+						        if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("un")) & (paraText.toLowerCase().contains("box"))) {
 									
 									fileWriterI.write("\n"+paraText, Constants.outputPath + "/Resource/box-unnum.txt", true);
 								}
-						        if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("unn video"))) {
+						        if ((paraText.toLowerCase().contains("<insert ")) & (paraText.toLowerCase().contains("un")) & (paraText.toLowerCase().contains("video"))) {
 									
 									fileWriterI.write("\n"+paraText, Constants.outputPath + "/Resource/video-unnum.txt", true);
 								}

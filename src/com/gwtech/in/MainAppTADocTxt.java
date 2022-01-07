@@ -75,7 +75,7 @@ public class MainAppTADocTxt {
 			Constants.projectChapter = fetchChapterName(fileName);
 			Constants.chapterPrefix = fetchChapterName(fileName);
 			
-			if (input.endsWith(".doc")) {
+			if (input.toLowerCase().endsWith(".doc")) {
 				wordToText.convertToDocx(rootPath + input, rootPath + fileName, ".docx");
 				new MiscUtility().DeleteFileFolder(rootPath + input);
 			}
