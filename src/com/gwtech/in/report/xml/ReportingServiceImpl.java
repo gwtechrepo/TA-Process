@@ -104,6 +104,9 @@ public class ReportingServiceImpl implements ReportingService {
 							
 							paraText = paraText.replace("<chap title>", "");
 //							paraText = paraText.substring((paraText.indexOf("<chap title>") + "<chap title>".length()));
+						} else {
+							
+							paraText = paraText.substring(12);
 						}
 						
 //						if (paraText.toLowerCase().contains("<@su"))
@@ -129,17 +132,26 @@ public class ReportingServiceImpl implements ReportingService {
 							
 							paraText = paraText.replace("<chap au>", "");
 //							paraText = paraText.substring((paraText.indexOf("<chap au>") + "<chap au>".length()));
+						} else {
+							
+							paraText = paraText.substring(9);
 						}
 						result[1] = paraText;
 						
-					} else if ((paraText.toLowerCase().startsWith("<chap ")) & ((paraText.toLowerCase().contains("outline")) == false) & (paraText.toLowerCase().contains("itle>") == false)) {
+					} else if ((paraText.toLowerCase().startsWith("<chap ")) 
+							& ((paraText.toLowerCase().contains("outline")) == false) 
+							& (paraText.toLowerCase().contains("itle>") == false) 
+							& ((paraText.toLowerCase().contains("obj")) == false)) {
 						
 						paraText = paraText.substring(0, (paraText.indexOf(">") + 1));
 						String chapNoInfo = "";
+						
 						if (paraText.startsWith("<chap "))
 							chapNoInfo = paraText.substring((paraText.indexOf("<chap ") + 6), (paraText.indexOf(">")));
 						else if (paraText.startsWith("<CHAP "))
 							chapNoInfo = paraText.substring((paraText.indexOf("<CHAP ") + 6), (paraText.indexOf(">")));
+						else
+							chapNoInfo = paraText.substring(6, (paraText.indexOf(">")));
 						
 						result[2] = chapNoInfo;
 						
