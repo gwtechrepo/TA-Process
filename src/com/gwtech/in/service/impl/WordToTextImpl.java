@@ -1,8 +1,10 @@
 package com.gwtech.in.service.impl;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -13,6 +15,8 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import com.aspose.words.Cell;
 import com.aspose.words.Comment;
@@ -124,6 +128,17 @@ public class WordToTextImpl implements WordToText {
 	public void collectComments(Document doc) throws Exception {
 		
 		NodeCollection comments = doc.getChildNodes(NodeType.COMMENT, true);
+		JSONArray aqTypes;
+		JSONParser parser = new JSONParser();
+		
+		aqTypes = HttpRequestImpl.get("auth/aq-types");
+		if (aqTypes == null) {
+			String universalPath = new File("resource/aq-types.json").getAbsolutePath();
+			Object obj = parser.parse(new FileReader(universalPath));
+			JSONObject json = (JSONObject) obj;
+			aqTypes = (JSONArray) json.get("body");
+		}
+        
 		
 		for (int i = 0; i < comments.getCount(); i ++) {
 			
@@ -133,14 +148,23 @@ public class WordToTextImpl implements WordToText {
 			NodeCollection runs = comment.getChildNodes(NodeType.RUN, true);
 			StringBuffer commentBuffer = new StringBuffer();
 			
+			Boolean isValidQuery = false;
         	for (Run run : (Iterable<Run>) runs) {
         		
         		String commentText = run.getText();
-        		while(commentText.startsWith(" ")) commentText = commentText.substring(1);
-        		commentText = fontProperties.fetchFontStyleScript(run, commentText, run.getFont().getStyle().getName(), "");
+        		
         		Boolean isValid = isAlphaInLine(commentText);
-        		if (isValid)
-        			commentBuffer.append(commentText);
+        		if (isValid) {
+	        		
+	        		if (!isValidQuery)
+	        			isValidQuery = checkTypesWithText(aqTypes, commentText);
+	        		
+	        		if (isValidQuery) {
+		        		commentText = commentText.trim();
+		        		commentText = fontProperties.fetchFontStyleScript(run, commentText, run.getFont().getStyle().getName(), "");
+		        		commentBuffer.append(commentText);
+	        		}
+        		}
         	}
 			
         	commentData = commentBuffer.toString();
@@ -155,6 +179,20 @@ public class WordToTextImpl implements WordToText {
 	}
 	
 	
+	private Boolean checkTypesWithText(JSONArray aqTypes, String commentText) {
+		Boolean valid = false;
+		for (int index = 0; index < aqTypes.size(); index ++){
+        	
+            JSONObject obj = (JSONObject) aqTypes.get(index);
+            String type = (String) obj.get("name");
+            if (commentText.startsWith(type)) {
+            	valid = true;
+            	break;
+            }
+		}
+		return valid;
+	}
+
 	public String deleteAllComments(String docFile) throws Exception {
 		
 		Document document = new Document(docFile);
@@ -246,11 +284,11 @@ public class WordToTextImpl implements WordToText {
 				Paragraph paragraph = (Paragraph) doc.getChild(NodeType.PARAGRAPH, paraIndex, true);
 				if (paragraph != null) {
 					
-					if (paraIndexinTable > 0) {
-						paraIndexinTable--;
-						paraIndex++;
-						continue;
-					}
+//					if (paraIndexinTable > 0) {
+//						paraIndexinTable--;
+//						paraIndex++;
+//						continue;
+//					}
 					
 					String paraStyle = paragraph.getParagraphFormat().getStyle().getName();
 					String paraText = paragraph.getText();
@@ -345,12 +383,12 @@ public class WordToTextImpl implements WordToText {
 			headerFooterOperation.removeFooterFromDocFile(docFile, docFile);
 		
 		Document doc = new Document(docFile);
-//		doc.getRange().getFormFields().clear(); // Unlink a field
+		doc.getRange().getFormFields().clear(); // Unlink a field
 		
-//		RemoveHiddenContentVisitor hiddenContentRemover = new RemoveHiddenContentVisitor();
-//	    doc.accept(hiddenContentRemover);
-//	    doc.acceptAllRevisions();
-//	    doc.removeMacros();
+		RemoveHiddenContentVisitor hiddenContentRemover = new RemoveHiddenContentVisitor();
+	    doc.accept(hiddenContentRemover);
+	    doc.acceptAllRevisions();
+	    doc.removeMacros();
 		
 //		docFile = coverTAFiltering(docFile, outputFileDocx, true);
 	    docFile = coverTAFiltering(docFile, outputFileDocx, false);
@@ -378,7 +416,7 @@ public class WordToTextImpl implements WordToText {
 		
 //	    doc.getRange().replace("", "<@open-box>□<@$p>", new FindReplaceOptions(FindReplaceDirection.FORWARD));
 		collectComments(doc);   // collect all comments
-//		removeAllComments(doc); // remove comments
+		removeAllComments(doc); // remove comments
 		
 		
 		
@@ -394,320 +432,325 @@ public class WordToTextImpl implements WordToText {
 		Boolean isFloatFigureAltItem = false, isFloatBoxAltItem = false, isFloatTableAltItem = false, isFloatVideoAltItem = false;
 		Boolean isFloatFigureCapItem = false, isFloatBoxCapItem = false, isFloatTableCapItem = false, isFloatVideoCapItem = false;
 		Boolean isFloatFigureFnoteItem = false, isFloatBoxFnoteItem = false, isFloatTableFnoteItem = false, isFloatVideoFnoteItem = false;
+		
+		JSONArray array = HttpRequestImpl.get("auth/universal-char-request?type=universal");
 
 		for (Node node : (Iterable<Node>) nodes) {
 			
-			if (node.getNodeType() == NodeType.TABLE) {
+//			if (node.getNodeType() == NodeType.TABLE) {
+//				
+//				Table table = (Table) doc.getChild(NodeType.TABLE, tableIndex, true);
+//				
+//				Integer rowIndex = 0;
+//				
+//				for (Row row : table.getRows()) {
+//			    	
+//					NodeCollection runs = null;
+//			    	
+//			    	for ( Cell cell: row.getCells()) {
+//			    		
+//			    		runs = cell.getChildNodes(NodeType.RUN, true);
+//			    		rowStyleStyle = cell.getFirstParagraph().getParagraphFormat().getStyle().getName();
+//			    		
+//			    		if (rowStyleStyle.contains("No Paragraph Style"))	rowStyleStyle = "";
+//			    		
+//			    		if (rowStyleStyle.length() > 0) {
+//					    	
+//			    			rowStyle = "@" + rowStyleStyle + ":";
+//			    			buffer.append(rowStyle);
+//			    			break;
+//					    }
+//			    	}
+//			    	
+//			    	
+//			    	
+//			    	StringBuffer cellBuffer = new StringBuffer();
+//			    	Integer cellParaindex = 0, tableCellIndex = 0;
+//			    	Boolean lineBreak = false;
+//			    	
+//			        for (Cell cell : row.getCells()) {
+//			        	
+//			        	Constants.styleTagStack = new ArrayList<String>();
+//			        	runs = cell.getChildNodes(NodeType.ANY, true);
+//			        	String cellText = cell.getText();
+//			        	cellText = cellText.replace("<@SOFT-BREAK/>", "<@BREAK/>");
+//			        	
+//			        	if (cellText.contains("Fig. 4.28.4"))
+//							logger.debug("Fig. 4.28.4");
+//			        	
+//			        	/**
+//						 * un-num/display start float items
+//						 * 
+//						 */
+//			        	String unNumCellText = "";
+//			        	unNumCellText = miscUtility. removeStartEndSpaces(cellText);
+//			        	unNumCellText = miscUtility. removeReturnUnit(cellText);
+//			        	unNumCellText = miscUtility. removeExtraSpaces(cellText);
+//			        	
+//			        	unNumCellText = unNumCellText.replaceAll("\r", "\n");
+//			        	unNumCellText = unNumCellText.replaceAll("\f", "\n");
+//			        	unNumCellText = unNumCellText.replaceAll("\t", "\n");
+//
+//			        	
+//			        	if (Constants.isReportingFace) {
+//			        		
+//			        		String[] splitTableCell = unNumCellText.split("\n");
+//			        		for (String tableCellval: splitTableCell) {
+//			        			
+//						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("fig"))) {
+//									
+//									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/figure-unnum.txt", true);
+//								}
+//						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("num")) & (tableCellval.toLowerCase().contains("eq"))) {
+//									
+//									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/figure-num-equation.txt", true);
+//								}
+//						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("table"))) {
+//									
+//									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/table-unnum.txt", true);
+//								}
+//						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("box"))) {
+//									
+//									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/box-unnum.txt", true);
+//								}
+//						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("video"))) {
+//									
+//									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/video-unnum.txt", true);
+//								}
+//			        		}
+//				        }
+//			        	
+//			        	/**
+//						 * un-num/display ends float items
+//						 * 
+//						 */
+//			        	
+//			        	if (isWordDownloadActive) {
+//			        	
+//			        		paraIndexinTable = cell.getParagraphs().getCount() + paraIndexinTable;
+//			        		cellParaStyleCount = cell.getParagraphs().getCount();
+//			        		
+//				        	Double width = cell.getCellFormat().getWidth(),
+//				        			rightPadding = cell.getCellFormat().getRightPadding(),
+//				        			rowHeight = row.getRowFormat().getHeight();
+//				        	
+//				        	Integer 
+//				        			verAlign = cell.getCellFormat().getVerticalAlignment(), 
+//				        			horMerge = cell.getCellFormat().getHorizontalMerge(), 
+//				        			VerMerge = cell.getCellFormat().getVerticalMerge(),
+//				        			orientation = cell.getCellFormat().getOrientation();
+//				        	
+//				        	String tableCellParaStyle = "";
+//				        	String tableCellParaLeftIndent = "0.0", tableCellParaFirstLineIndent = "0.0";
+//				        	cell.getFirstParagraph().getParagraphFormat().getStyle().getName();
+//				        	
+//				        	if (cell.getParagraphs().get(tableCellIndex) != null) {
+//				        		
+//				        		if (cell.getParagraphs().get(tableCellIndex).getParagraphFormat().getStyle() != null)
+//				        			tableCellParaStyle = cell.getParagraphs().get(tableCellIndex).getParagraphFormat().getStyle().getName();
+//				        		
+//					        	if (tableCellParaStyle.contains("No Paragraph Style"))	tableCellParaStyle = "";
+//					        	
+//					        	tableCellParaLeftIndent = cell.getParagraphs().get(tableCellIndex).getParagraphFormat().getLeftIndent() + "";
+//					        	tableCellParaFirstLineIndent = cell.getParagraphs().get(tableCellIndex).getParagraphFormat().getFirstLineIndent() + "";
+//					        	
+//				        	} else if (cell.getParagraphs().get(0) != null) {
+//				        		
+//				        		if (cell.getParagraphs().get(0).getParagraphFormat().getStyle() != null)
+//				        			tableCellParaStyle = cell.getParagraphs().get(0).getParagraphFormat().getStyle().getName();
+//				        		
+//					        	if (tableCellParaStyle.contains("No Paragraph Style"))	tableCellParaStyle = "";
+//					        	
+//					        	tableCellParaLeftIndent = cell.getParagraphs().get(0).getParagraphFormat().getLeftIndent() + "";
+//					        	tableCellParaFirstLineIndent = cell.getParagraphs().get(0).getParagraphFormat().getFirstLineIndent() + "";
+//				        	}
+//				        	
+//				        	
+//				        	
+//				        	if (tableCellParaStyle.length() > 0)								cellBuffer.append("<@cell-para-style-open>"+(tableCellParaStyle)+"<@cell-para-style-close>");
+//				        	if (tableCellParaLeftIndent.equalsIgnoreCase("0.0") == false)		cellBuffer.append("<@cell-para-left-indent-open>"+(tableCellParaLeftIndent)+"<@cell-para-left-indent-close>");
+//				        	if (tableCellParaFirstLineIndent.equalsIgnoreCase("0.0") == false)	cellBuffer.append("<@cell-para-first-line-indent>"+(tableCellParaFirstLineIndent)+"<@$p>");
+//				        	if (width > 0)														cellBuffer.append("<@cell-width-open>"+(width)+"<@cell-width-close>");
+//				        	if (verAlign > 0)													cellBuffer.append("<@cell-ver-align-open>"+(verAlign)+"<@cell-ver-align-close>");
+//				        	if (horMerge > 0)													cellBuffer.append("<@cell-hor-merge-open>"+(horMerge)+"<@cell-hor-merge-close>");
+//				        	if (VerMerge > 0)													cellBuffer.append("<@cell-ver-merge-open>"+(VerMerge)+"<@cell-ver-merge-close>");
+//				        	if (rightPadding > 0)												cellBuffer.append("<@cell-right-padding-open>"+(rightPadding)+"<@cell-right-padding-close>");
+//				        	if (orientation > 0)												cellBuffer.append("<@cell-orientation-open>"+(orientation)+"<@cell-orientation-close>");
+//				        	if (rowHeight > 0)													cellBuffer.append("<@row-height-open>"+(rowHeight)+"<@row-height-close>");
+//			        	}
+//			        	
+//			        	
+//			        	
+//			        	String tableCellText = "", hyperlink = "", listLabelObj = "";
+//			        	
+//			        	lineBreak = false;
+//			        	
+//			        	for (Node runNode : (Iterable<Node>) runs) {
+//			        		
+//			        		if (runNode.getNodeType() == NodeType.PARAGRAPH) {
+//			        			
+//			        			if (lineBreak)	cellBuffer.append("<@BREAK/>");
+//				        		if (lineBreak == false)	lineBreak = true;
+//				        		
+//			        		} else if (runNode.getNodeType() == NodeType.SPECIAL_CHAR) {
+//			        			
+//			        			tableCellText = runNode.getText();
+//			        			tableCellText = tableCellText.replace(".eps.jpg", ".jpg");
+//								
+//								try {
+////									tableCellText = HttpRequestImpl.checkSymbolWithUnicode(array, tableCellText);
+//								} catch (Exception exception) {
+//									logger.error(exception.getMessage(), exception);
+//								}
+//								
+//								
+//								tableCellText = replaceExtraText(tableCellText);
+//								List<String> links = extractUrls(tableCellText);
+//								
+//								if (links.size() > 0) {
+//
+//									StringBuffer bufferTemp = new StringBuffer();
+//									String data = tableCellText;
+//									for (String link: links) {
+//										
+//										String prefixData = data.substring(0, ((data.indexOf(link)) + (link.length())));
+//										data = data.substring(prefixData.length());
+//										prefixData = prefixData.replace(link, "<@link-text-open>" + link + "<@link-text-close>");
+//										bufferTemp.append(prefixData);
+//										
+//									}
+//									bufferTemp.append(data);
+//									tableCellText = bufferTemp.toString();
+//								
+//								}
+//								
+////								tableCellText = HttpRequestImpl.checkSymbolWithUnicode(array, tableCellText);
+//								
+//								cellBuffer.append(tableCellText);
+//								cellParaindex++;
+//								
+//							} else if (runNode.getNodeType() == NodeType.RUN){
+//				        		
+//								Run run = (Run)runNode;
+//								
+//								tableCellText = run.getText();
+//								
+//								tableCellText = tableCellText.replace(".eps.jpg", ".jpg");
+//								tableCellText = tableCellText.replace("<@SOFT-BREAK/>", "<@BREAK/>");
+//								
+//								if (Constants.taSettingForUser.isSymbolMissing()) {
+//									tableCellText = tableCellText.replace("", "<@alert-red-symbolbox-open>[x]<@alert-red-symbolbox-close>");
+////									tableCellText = tableCellText.replace("", "<@alert-red-symbolbox-open>[x]<@alert-red-symbolbox-close>");
+//								}
+////								if (tableCellText.contains(""))
+////									System.out.println("");
+//								
+//								tableCellText = replaceExtraText(tableCellText);
+//								List<String> links = extractUrls(tableCellText);
+//								
+//								if (links.size() > 0) {
+//									
+//									StringBuffer bufferTemp = new StringBuffer();
+//									String data = tableCellText;
+//									for (String link: links) {
+//										
+//										String prefixData = data.substring(0, ((data.indexOf(link)) + (link.length())));
+//										data = data.substring(prefixData.length());
+//										prefixData = prefixData.replace(link, "<@link-text-open>" + link + "<@link-text-close>");
+//										bufferTemp.append(prefixData);
+//										
+//									}
+//									bufferTemp.append(data);
+//									tableCellText = bufferTemp.toString();
+//								}
+//								
+//								if (isWordDownloadActive) {
+//									
+////									Double leftIndent = run.getParentParagraph().getParagraphFormat().getLeftIndent();
+////									if (leftIndent > 0)	cellBuffer.append("<@cell-left-indent-open>"+(leftIndent)+"<@cell-left-indent-close>");
+//								}
+//								
+//								if ((tableCellText.contains("HYPERLINK "))) {
+//									hyperlink = tableCellText.replace(" HYPERLINK \"", "").replace("\" ", "");
+//									continue;
+//								}
+//								
+//								String checkMathSymbol = run.getFont().getStyle().getName();
+//								
+//								if (checkMathSymbol.equalsIgnoreCase("Default Paragraph Font")) {
+//									checkMathSymbol = "";
+//								}
+//								
+//								
+//								if (checkMathSymbol.toLowerCase().contains("symbol")) {
+//									checkMathSymbol = run.getFont().getName().toLowerCase();
+//									checkMathSymbol = checkMathSymbol.replace(" ", "").replace("_", "").replace("-", "");
+//								} else if (run.getFont().getName().toLowerCase().contains("symbol")){
+//									
+//									checkMathSymbol = run.getFont().getName().toLowerCase();
+//									checkMathSymbol = checkMathSymbol.replace(" ", "").replace("_", "").replace("-", "");
+//								}
+//								
+//								if (tableCellText.contains("<@alert-red-symbolbox-open>") == false)
+//									tableCellText = fontProperties.fetchFontStyleScript(run, tableCellText, checkMathSymbol, hyperlink);
+//								
+//								tableCellText = tableCellText.replaceAll("\t", "    ");
+//								
+//								if (isWordDownloadActive & ((cellParaindex < cellParaStyleCount))) {
+//									String paraNestStyle = cell.getParagraphs().get(cellParaindex).getParagraphFormat().getStyle().getName();
+//									if ((paraNestStyle.length() > 0) & (rowStyleStyle.equalsIgnoreCase(paraNestStyle) == false)) {
+//										cellBuffer.append("<#$REMOVE-HEAD/>");
+//									}
+//								}
+//								
+////								tableCellText = HttpRequestImpl.checkSymbolWithUnicode(array, tableCellText);
+//								
+//								if (cell.getFirstParagraph().getListFormat().isListItem()) {
+//							        
+//									ListLabel label = cell.getFirstParagraph().getListLabel();
+//							    	listLabelObj = label.getLabelString();
+//							        
+//							    	if (listLabelObj.length() > 0)
+//							    		tableCellText = listLabelObj + "\t" +tableCellText;
+//							    }
+//								
+//								cellBuffer.append(tableCellText);
+//								cellParaindex++;
+//							}
+//			        	}
+//			        	
+//			        	if (Constants.styleTagStack.size() > 0) {
+//			    			
+//			    			StringBuffer tagNameBuff = new StringBuffer();
+//			    			tagNameBuff.append("<@");
+//			    			
+//			    			for (int index = 0; index < Constants.styleTagStack.size(); index ++) {
+//			    				tagNameBuff.append(Constants.styleTagStack.get(index));
+//			    			}
+//			    			
+//			    			tagNameBuff.append("-close>");
+//			    			cellBuffer.append(tagNameBuff.toString());
+//			    		}
+//			        	
+//			        	tableCellIndex++;
+//			        	
+//			        	if ((row.getCells().getCount()) > tableCellIndex)
+//			        		cellBuffer.append("\t");
+//			        }
+//			        
+//			        String cellText = cellBuffer.toString().replace("", "");
+//			        String allcelldata = cellText;
+//			        buffer.append(allcelldata + "\n");
+//			        
+//			        rowIndex++;
+//			    }
+//
+//				tableIndex++;
+//				
+//			} else 
 				
-				Table table = (Table) doc.getChild(NodeType.TABLE, tableIndex, true);
 				
-				Integer rowIndex = 0;
-				
-				for (Row row : table.getRows()) {
-			    	
-					NodeCollection runs = null;
-			    	
-			    	for ( Cell cell: row.getCells()) {
-			    		
-			    		runs = cell.getChildNodes(NodeType.RUN, true);
-			    		rowStyleStyle = cell.getFirstParagraph().getParagraphFormat().getStyle().getName();
-			    		
-			    		if (rowStyleStyle.contains("No Paragraph Style"))	rowStyleStyle = "";
-			    		
-			    		if (rowStyleStyle.length() > 0) {
-					    	
-			    			rowStyle = "@" + rowStyleStyle + ":";
-			    			buffer.append(rowStyle);
-			    			break;
-					    }
-			    	}
-			    	
-			    	
-			    	
-			    	StringBuffer cellBuffer = new StringBuffer();
-			    	Integer cellParaindex = 0, tableCellIndex = 0;
-			    	Boolean lineBreak = false;
-			    	
-			        for (Cell cell : row.getCells()) {
-			        	
-			        	Constants.styleTagStack = new ArrayList<String>();
-			        	runs = cell.getChildNodes(NodeType.ANY, true);
-			        	String cellText = cell.getText();
-			        	cellText = cellText.replace("<@SOFT-BREAK/>", "<@BREAK/>");
-			        	
-			        	if (cellText.contains("Arthroconidia with or without budding yeast cells"))
-							logger.debug("Arthroconidia with or without budding yeast cells");
-			        	
-			        	/**
-						 * un-num/display start float items
-						 * 
-						 */
-			        	String unNumCellText = "";
-			        	unNumCellText = miscUtility. removeStartEndSpaces(cellText);
-			        	unNumCellText = miscUtility. removeReturnUnit(cellText);
-			        	unNumCellText = miscUtility. removeExtraSpaces(cellText);
-			        	
-			        	unNumCellText = unNumCellText.replaceAll("\r", "\n");
-			        	unNumCellText = unNumCellText.replaceAll("\f", "\n");
-			        	unNumCellText = unNumCellText.replaceAll("\t", "\n");
-
-			        	
-			        	if (Constants.isReportingFace) {
-			        		
-			        		String[] splitTableCell = unNumCellText.split("\n");
-			        		for (String tableCellval: splitTableCell) {
-			        			
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("fig"))) {
-									
-									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/figure-unnum.txt", true);
-								}
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("num")) & (tableCellval.toLowerCase().contains("eq"))) {
-									
-									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/figure-num-equation.txt", true);
-								}
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("table"))) {
-									
-									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/table-unnum.txt", true);
-								}
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("box"))) {
-									
-									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/box-unnum.txt", true);
-								}
-						        if ((tableCellval.toLowerCase().contains("<insert ")) & (tableCellval.toLowerCase().contains("un")) & (tableCellval.toLowerCase().contains("video"))) {
-									
-									fileWriterI.write("\n"+tableCellval, Constants.outputPath + "/Resource/video-unnum.txt", true);
-								}
-			        		}
-				        }
-			        	
-			        	/**
-						 * un-num/display ends float items
-						 * 
-						 */
-			        	
-			        	if (isWordDownloadActive) {
-			        	
-			        		paraIndexinTable = cell.getParagraphs().getCount() + paraIndexinTable;
-			        		cellParaStyleCount = cell.getParagraphs().getCount();
-			        		
-				        	Double width = cell.getCellFormat().getWidth(),
-				        			rightPadding = cell.getCellFormat().getRightPadding(),
-				        			rowHeight = row.getRowFormat().getHeight();
-				        	
-				        	Integer 
-				        			verAlign = cell.getCellFormat().getVerticalAlignment(), 
-				        			horMerge = cell.getCellFormat().getHorizontalMerge(), 
-				        			VerMerge = cell.getCellFormat().getVerticalMerge(),
-				        			orientation = cell.getCellFormat().getOrientation();
-				        	
-				        	String tableCellParaStyle = "";
-				        	String tableCellParaLeftIndent = "0.0", tableCellParaFirstLineIndent = "0.0";
-				        	cell.getFirstParagraph().getParagraphFormat().getStyle().getName();
-				        	
-				        	if (cell.getParagraphs().get(tableCellIndex) != null) {
-				        		
-				        		if (cell.getParagraphs().get(tableCellIndex).getParagraphFormat().getStyle() != null)
-				        			tableCellParaStyle = cell.getParagraphs().get(tableCellIndex).getParagraphFormat().getStyle().getName();
-				        		
-					        	if (tableCellParaStyle.contains("No Paragraph Style"))	tableCellParaStyle = "";
-					        	
-					        	tableCellParaLeftIndent = cell.getParagraphs().get(tableCellIndex).getParagraphFormat().getLeftIndent() + "";
-					        	tableCellParaFirstLineIndent = cell.getParagraphs().get(tableCellIndex).getParagraphFormat().getFirstLineIndent() + "";
-					        	
-				        	} else if (cell.getParagraphs().get(0) != null) {
-				        		
-				        		if (cell.getParagraphs().get(0).getParagraphFormat().getStyle() != null)
-				        			tableCellParaStyle = cell.getParagraphs().get(0).getParagraphFormat().getStyle().getName();
-				        		
-					        	if (tableCellParaStyle.contains("No Paragraph Style"))	tableCellParaStyle = "";
-					        	
-					        	tableCellParaLeftIndent = cell.getParagraphs().get(0).getParagraphFormat().getLeftIndent() + "";
-					        	tableCellParaFirstLineIndent = cell.getParagraphs().get(0).getParagraphFormat().getFirstLineIndent() + "";
-				        	}
-				        	
-				        	
-				        	
-				        	if (tableCellParaStyle.length() > 0)								cellBuffer.append("<@cell-para-style-open>"+(tableCellParaStyle)+"<@cell-para-style-close>");
-				        	if (tableCellParaLeftIndent.equalsIgnoreCase("0.0") == false)		cellBuffer.append("<@cell-para-left-indent-open>"+(tableCellParaLeftIndent)+"<@cell-para-left-indent-close>");
-				        	if (tableCellParaFirstLineIndent.equalsIgnoreCase("0.0") == false)	cellBuffer.append("<@cell-para-first-line-indent>"+(tableCellParaFirstLineIndent)+"<@$p>");
-				        	if (width > 0)														cellBuffer.append("<@cell-width-open>"+(width)+"<@cell-width-close>");
-				        	if (verAlign > 0)													cellBuffer.append("<@cell-ver-align-open>"+(verAlign)+"<@cell-ver-align-close>");
-				        	if (horMerge > 0)													cellBuffer.append("<@cell-hor-merge-open>"+(horMerge)+"<@cell-hor-merge-close>");
-				        	if (VerMerge > 0)													cellBuffer.append("<@cell-ver-merge-open>"+(VerMerge)+"<@cell-ver-merge-close>");
-				        	if (rightPadding > 0)												cellBuffer.append("<@cell-right-padding-open>"+(rightPadding)+"<@cell-right-padding-close>");
-				        	if (orientation > 0)												cellBuffer.append("<@cell-orientation-open>"+(orientation)+"<@cell-orientation-close>");
-				        	if (rowHeight > 0)													cellBuffer.append("<@row-height-open>"+(rowHeight)+"<@row-height-close>");
-			        	}
-			        	
-			        	
-			        	
-			        	String tableCellText = "", hyperlink = "", listLabelObj = "";
-			        	
-			        	lineBreak = false;
-			        	
-			        	for (Node runNode : (Iterable<Node>) runs) {
-			        		
-			        		if (runNode.getNodeType() == NodeType.PARAGRAPH) {
-			        			
-			        			if (lineBreak)	cellBuffer.append("<@BREAK/>");
-				        		if (lineBreak == false)	lineBreak = true;
-				        		
-			        		} else if (runNode.getNodeType() == NodeType.SPECIAL_CHAR) {
-			        			
-			        			tableCellText = runNode.getText();
-			        			tableCellText = tableCellText.replace(".eps.jpg", ".jpg");
-								
-								try {
-//									tableCellText = HttpRequestImpl.checkSymbolWithUnicode(array, tableCellText);
-								} catch (Exception exception) {
-									logger.error(exception.getMessage(), exception);
-								}
-								
-								
-								tableCellText = replaceExtraText(tableCellText);
-								List<String> links = extractUrls(tableCellText);
-								
-								if (links.size() > 0) {
-
-									StringBuffer bufferTemp = new StringBuffer();
-									String data = tableCellText;
-									for (String link: links) {
-										
-										String prefixData = data.substring(0, ((data.indexOf(link)) + (link.length())));
-										data = data.substring(prefixData.length());
-										prefixData = prefixData.replace(link, "<@link-text-open>" + link + "<@link-text-close>");
-										bufferTemp.append(prefixData);
-										
-									}
-									bufferTemp.append(data);
-									tableCellText = bufferTemp.toString();
-								
-								}
-								
-//								tableCellText = HttpRequestImpl.checkSymbolWithUnicode(array, tableCellText);
-								
-								cellBuffer.append(tableCellText);
-								cellParaindex++;
-								
-							} else if (runNode.getNodeType() == NodeType.RUN){
-				        		
-								Run run = (Run)runNode;
-								
-								tableCellText = run.getText();
-								
-								tableCellText = tableCellText.replace(".eps.jpg", ".jpg");
-								tableCellText = tableCellText.replace("<@SOFT-BREAK/>", "<@BREAK/>");
-								
-								if (Constants.taSettingForUser.isSymbolMissing()) {
-									tableCellText = tableCellText.replace("", "<@alert-red-symbolbox-open>[x]<@alert-red-symbolbox-close>");
-//									tableCellText = tableCellText.replace("", "<@alert-red-symbolbox-open>[x]<@alert-red-symbolbox-close>");
-								}
-//								if (tableCellText.contains(""))
-//									System.out.println("");
-								
-								tableCellText = replaceExtraText(tableCellText);
-								List<String> links = extractUrls(tableCellText);
-								
-								if (links.size() > 0) {
-									
-									StringBuffer bufferTemp = new StringBuffer();
-									String data = tableCellText;
-									for (String link: links) {
-										
-										String prefixData = data.substring(0, ((data.indexOf(link)) + (link.length())));
-										data = data.substring(prefixData.length());
-										prefixData = prefixData.replace(link, "<@link-text-open>" + link + "<@link-text-close>");
-										bufferTemp.append(prefixData);
-										
-									}
-									bufferTemp.append(data);
-									tableCellText = bufferTemp.toString();
-								}
-								
-								if (isWordDownloadActive) {
-									
-//									Double leftIndent = run.getParentParagraph().getParagraphFormat().getLeftIndent();
-//									if (leftIndent > 0)	cellBuffer.append("<@cell-left-indent-open>"+(leftIndent)+"<@cell-left-indent-close>");
-								}
-								
-								if ((tableCellText.contains("HYPERLINK "))) {
-									hyperlink = tableCellText.replace(" HYPERLINK \"", "").replace("\" ", "");
-									continue;
-								}
-								
-								String checkMathSymbol = run.getFont().getStyle().getName();
-								
-								if (checkMathSymbol.equalsIgnoreCase("Default Paragraph Font")) {
-									checkMathSymbol = "";
-								}
-								
-								
-								if (checkMathSymbol.toLowerCase().contains("symbol")) {
-									checkMathSymbol = run.getFont().getName().toLowerCase();
-									checkMathSymbol = checkMathSymbol.replace(" ", "").replace("_", "").replace("-", "");
-								} else if (run.getFont().getName().toLowerCase().contains("symbol")){
-									
-									checkMathSymbol = run.getFont().getName().toLowerCase();
-									checkMathSymbol = checkMathSymbol.replace(" ", "").replace("_", "").replace("-", "");
-								}
-								
-								if (tableCellText.contains("<@alert-red-symbolbox-open>") == false)
-									tableCellText = fontProperties.fetchFontStyleScript(run, tableCellText, checkMathSymbol, hyperlink);
-								
-								tableCellText = tableCellText.replaceAll("\t", "    ");
-								
-								if (isWordDownloadActive & ((cellParaindex < cellParaStyleCount))) {
-									String paraNestStyle = cell.getParagraphs().get(cellParaindex).getParagraphFormat().getStyle().getName();
-									if ((paraNestStyle.length() > 0) & (rowStyleStyle.equalsIgnoreCase(paraNestStyle) == false)) {
-										cellBuffer.append("<#$REMOVE-HEAD/>");
-									}
-								}
-								
-//								tableCellText = HttpRequestImpl.checkSymbolWithUnicode(array, tableCellText);
-								
-								if (cell.getFirstParagraph().getListFormat().isListItem()) {
-							        
-									ListLabel label = cell.getFirstParagraph().getListLabel();
-							    	listLabelObj = label.getLabelString();
-							        
-							    	if (listLabelObj.length() > 0)
-							    		tableCellText = listLabelObj + "\t" +tableCellText;
-							    }
-								
-								cellBuffer.append(tableCellText);
-								cellParaindex++;
-							}
-			        	}
-			        	
-			        	if (Constants.styleTagStack.size() > 0) {
-			    			
-			    			StringBuffer tagNameBuff = new StringBuffer();
-			    			tagNameBuff.append("<@");
-			    			
-			    			for (int index = 0; index < Constants.styleTagStack.size(); index ++) {
-			    				tagNameBuff.append(Constants.styleTagStack.get(index));
-			    			}
-			    			
-			    			tagNameBuff.append("-close>");
-			    			cellBuffer.append(tagNameBuff.toString());
-			    		}
-			        	
-			        	tableCellIndex++;
-			        	
-			        	if ((row.getCells().getCount()) > tableCellIndex)
-			        		cellBuffer.append("\t");
-			        }
-			        
-			        String cellText = cellBuffer.toString().replace("", "");
-			        String allcelldata = cellText;
-			        buffer.append(allcelldata + "\n");
-			        
-			        rowIndex++;
-			    }
-
-				tableIndex++;
-				
-			} else if ((node.getNodeType() == NodeType.PARAGRAPH) || ((node.getNodeType() == NodeType.RUN))) {
+				if ((node.getNodeType() == NodeType.PARAGRAPH) || ((node.getNodeType() == NodeType.RUN))) {
 				
 				Paragraph paragraph = (Paragraph) doc.getChild(NodeType.PARAGRAPH, paraIndex, true);
 				
@@ -731,6 +774,8 @@ public class WordToTextImpl implements WordToText {
 					
 					String paraText = paragraph.getText();
 					
+					paraText = HttpRequestImpl.lineStartWithSymbols(array, paraText);
+					
 					paraText = miscUtility.removeExtraSpaces(paraText);
 					paraText = miscUtility.removeStartEndSpaces(paraText);
 					paraText = miscUtility.removeReturnUnit(paraText);
@@ -738,8 +783,8 @@ public class WordToTextImpl implements WordToText {
 					
 					String listLabelObj = "";
 					
-					if (paraText.toLowerCase().contains("figure 2.1"))
-						logger.debug("Fig leg:<@bold-open>FIGURE 2.1");
+					if (paraText.contains("Community-acquired pneumonia "))
+						logger.debug("Community-acquired pneumonia ");
 					
 				    if (paragraph.getListFormat().isListItem()) {
 				    	// This is the text we get when actually getting when we output this node to text format
@@ -763,11 +808,11 @@ public class WordToTextImpl implements WordToText {
 					if ((paraStyle.toLowerCase().contains("fm title")) & (paraText.toLowerCase().contains("contents")))
 						Constants.contentsLabel = true;
 					
-					if (paraIndexinTable > 0) {
-						paraIndexinTable--;
-						paraIndex++;
-						continue;
-					}
+//					if (paraIndexinTable > 0) {
+//						paraIndexinTable--;
+//						paraIndex++;
+//						continue;
+//					}
 					
 					if( (paraStyle.length() > 0) ) {
 						
@@ -812,7 +857,7 @@ public class WordToTextImpl implements WordToText {
 								 * un-num/display ends float items
 								 */
 						        
-								if (paraText.toLowerCase().contains("linear eus image (7.5 mhz) of fnb of a mass at the distal bile du"))
+								if (paraText.toLowerCase().contains("Right bundle branch block. Note wide QRS complex "))
 									logger.debug("<figure legends>");
 								
 								if (
@@ -1719,6 +1764,10 @@ public class WordToTextImpl implements WordToText {
 							String charStyle = run.getFont().getStyle().getName();
 							charText = run.getText();
 //							charText = run.toString(SaveFormat.TEXT).trim();
+							
+//							Color color = run.getFont().getShading().getBackgroundPatternColor();
+//							int rgbC = color.getRGB();
+//							System.out.println(rgbC);
 							
 							if (indexCharLoop == 0) {
 								

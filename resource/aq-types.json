@@ -1,0 +1,56 @@
+{
+    "body": [
+        {
+            "id": 1,
+            "name": "AU"
+        },
+        {
+            "id": 2,
+            "name": "ED"
+        },
+        {
+            "id": 3,
+            "name": "TS"
+        },
+        {
+            "id": 4,
+            "name": "TY"
+        }
+    ],
+    "status": "OK",
+    "maxCount": null,
+    "labels": null,
+    "aqPercent": null,
+    "podPercent": null,
+    "epubPercent": null,
+    "gwtsPercent": null,
+    "customWebPdfPercent": null,
+    "packagerPercent": null,
+    "wordToTextPercent": null,
+    "wordComparePercent": null,
+    "toolUtilitiesPercent": null,
+    "wordDownloadPercent": null,
+    "artSummarizerPercent": null,
+    "totalPodRecord": null,
+    "totalAqRecord": null,
+    "totalEpubRecord": null,
+    "totalGwtsRecord": null,
+    "totalCustomWebPdfRecord": null,
+    "totalPackagerRecord": null,
+    "totalWordToTextRecord": null,
+    "totalWordCompareRecord": null,
+    "totalWordDownloadRecord": null,
+    "totalToolUtilitiesRecord": null,
+    "totalArtSummarizerRecord": null,
+    "successPodRecord": null,
+    "successAqRecord": null,
+    "successEpubRecord": null,
+    "successGwtsRecord": null,
+    "successCustomWebPdfRecord": null,
+    "successPackagerRecord": null,
+    "successWordToTextRecord": null,
+    "successWordCompareRecord": null,
+    "successWordDownloadRecord": null,
+    "successToolUtilitiesRecord": null,
+    "successArtSummarizerRecord": null
+}

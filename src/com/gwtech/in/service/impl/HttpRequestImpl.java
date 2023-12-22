@@ -17,7 +17,7 @@ import org.json.simple.parser.ParseException;
 @SuppressWarnings("deprecation")
 public class HttpRequestImpl {
 	
-//	public static String apiUrl = "http://localhost:8081/";
+//	public static String apiUrl = "http://localhost:8089/";
 	public static String apiUrl = "http://192.168.1.56/";
 	
 	public static void main(String[] a) {
@@ -104,6 +104,43 @@ public class HttpRequestImpl {
         return paraText;
     }
     
+    public static String lineStartWithSymbols(JSONArray array, String paraText){
+    	
+    	paraText = paraText.trim();
+        for (int index = 0; index < array.size(); index ++){
+//        	<\#U2026>
+            JSONObject obj = (JSONObject) array.get(index);
+            String expresionObj = (String) obj.get("characterSymbol");
+            if (
+            		(expresionObj.equalsIgnoreCase("<") == false) &
+            		(expresionObj.equalsIgnoreCase("\\") == false) &
+            		(expresionObj.equalsIgnoreCase("#") == false) &
+            		(expresionObj.equalsIgnoreCase(">") == false) &
+            		(expresionObj.equalsIgnoreCase("(") == false) &
+            		(expresionObj.equalsIgnoreCase(")") == false) &
+            		(expresionObj.equalsIgnoreCase("&") == false) &
+            		(expresionObj.equalsIgnoreCase(",") == false) &
+            		(expresionObj.equalsIgnoreCase(":") == false) &
+            		(expresionObj.equalsIgnoreCase(".") == false) &
+            		(expresionObj.equalsIgnoreCase("?") == false) &
+            		(expresionObj.equalsIgnoreCase("@") == false) &
+            		(expresionObj.equalsIgnoreCase("/") == false) &
+            		(expresionObj.equalsIgnoreCase("$") == false) &
+            		(expresionObj.equalsIgnoreCase("+") == false) &
+            		(expresionObj.equalsIgnoreCase("-") == false) &
+            		(expresionObj.equalsIgnoreCase("[") == false) &
+            		(expresionObj.equalsIgnoreCase("]") == false)  
+            		)
+            if (paraText.startsWith(expresionObj)) {
+            	
+            	paraText = paraText.substring((paraText.indexOf(expresionObj)) + (expresionObj.length()));
+            	paraText = paraText.trim();
+            	break;
+            }
+        }
+        return paraText;
+    }
+
     
     public JSONObject getTaSettings(String url) throws ClientProtocolException, IOException, ParseException {
         

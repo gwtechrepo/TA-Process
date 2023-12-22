@@ -44,6 +44,7 @@ public class MainAppTADocTxt {
 			ObjectMapper mapper = new ObjectMapper();
 			Constants.taSettingForUser = mapper.readValue(jsonObjResponse.toString(), TASettingForUser.class);
 			
+			
 			if (Boolean.parseBoolean(args[5]))	wordToText.init(fileName);
 			
 			

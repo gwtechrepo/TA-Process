@@ -24,7 +24,7 @@ public class TestApp {
 		
 		try {
 			
-			File fileDir = new File("/Users/administrator/Desktop/Lussier_HRM_4e_TB_updated_AACSB/");
+			File fileDir = new File("/Users/administrator/Documents/Services-Utility/Pdf-Indexing/VishramSingh_GA-9788131264874/PDF-proofs/");
 			if (fileDir.isDirectory()) {
 				File[] files = fileDir.listFiles();
 				
@@ -56,6 +56,7 @@ public class TestApp {
 								
 								paraText = paraText.replaceAll("\r", "");
 								paraText = removeStartEndSpaces(paraText);
+								System.out.println(paraText);
 								
 								if (paraText.toLowerCase().startsWith("shrm:")) {
 									

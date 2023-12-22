@@ -75,7 +75,7 @@ public class AlertsQueryImpl implements AlertsQuery {
 					
 					if (floatmainFigureCount == 0) {
 						
-						bufferFloatFigure.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, data placement of figure sequence-order for ");
+						bufferFloatFigure.append("\nAU: Please verify, data placement of figure sequence-order for ");
 						bufferFloatFigure.append("\"" + label + "\"");
 					}  
 						
@@ -89,11 +89,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 				if (line.startsWith("<Box-Float-Entry> ")) { // {FLOAT MAIN FIGURE MISSING}=Fig. 36.32
 					
 					String label = line.substring((line.indexOf("<Box-Float-Entry> ") + "<Box-Float-Entry> ".length()));
-//					bufferFloatBox.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, float item box is missing for \"" + boxLabel+"\"");
+//					bufferFloatBox.append("\nAU: Please verify, float item box is missing for \"" + boxLabel+"\"");
 					
 					if (floatmainBoxCount == 0) {
 						
-						bufferFloatBox.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, data placement of box sequence-order for ");
+						bufferFloatBox.append("\nAU: Please verify, data placement of box sequence-order for ");
 						bufferFloatBox.append("\"" + label + "\"");
 					}  
 						
@@ -108,11 +108,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 					
 						
 					String label = line.substring((line.indexOf("<Table-Float-Entry> ") + "<Table-Float-Entry> ".length()));
-//					bufferFloatTable.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, float item table is missing for \"" + boxLabel+"\"");
+//					bufferFloatTable.append("\nAU: Please verify, float item table is missing for \"" + boxLabel+"\"");
 					
 					if (floatmainTableCount == 0) {
 						
-						bufferFloatTable.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, data placement of table sequence-order for ");
+						bufferFloatTable.append("\nAU: Please verify, data placement of table sequence-order for ");
 						bufferFloatTable.append("\"" + label + "\"");
 					}  
 						
@@ -126,11 +126,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 				if (line.startsWith("<Video-Float-Entry> ")) { // {FLOAT MAIN FIGURE MISSING}=Fig. 36.32
 					
 					String label = line.substring((line.indexOf("<Video-Float-Entry> ") + "<Video-Float-Entry> ".length()));
-//					bufferFloatVideo.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, float item video is missing for \"" + boxLabel+"\"");
+//					bufferFloatVideo.append("\nAU: Please verify, float item video is missing for \"" + boxLabel+"\"");
 					
 					if (floatmainVideoCount == 0) {
 						
-						bufferFloatVideo.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify data placement of video sequence-order for ");
+						bufferFloatVideo.append("\nAU: Please verify data placement of video sequence-order for ");
 						bufferFloatVideo.append("\"" + label + "\"");
 					}  
 						
@@ -152,11 +152,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 				if (line.startsWith("<Figure-Callout-Entry> ")) {
 					
 					String label = line.substring((line.indexOf("<Figure-Callout-Entry> ") + "<Figure-Callout-Entry> ".length()));
-//					bufferCalloutFigure.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of figure \""+(boxLabel)+"\" is it correct?");
+//					bufferCalloutFigure.append("\nAU: Please verify, in-text callout of figure \""+(boxLabel)+"\" is it correct?");
 					
 					if (floatcalloutFigureCount == 0) {
 						
-						bufferCalloutFigure.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of figure sequence-order for ");
+						bufferCalloutFigure.append("\nAU: Please verify, in-text callout of figure sequence-order for ");
 						bufferCalloutFigure.append("\"" + label + "\"");
 					}  
 						
@@ -171,11 +171,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 					
 						
 					String label = line.substring((line.indexOf("<Box-Callout-Entry> ") + "<Box-Callout-Entry> ".length()));
-//					bufferCalloutBox.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of box \""+(boxLabel)+"\" is it correct?");
+//					bufferCalloutBox.append("\nAU: Please verify, in-text callout of box \""+(boxLabel)+"\" is it correct?");
 					
 					if (floatcalloutBoxCount == 0) {
 						
-						bufferCalloutBox.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of box sequence-order for ");
+						bufferCalloutBox.append("\nAU: Please verify, in-text callout of box sequence-order for ");
 						bufferCalloutBox.append("\"" + label + "\"");
 					}  
 						
@@ -189,11 +189,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 				if (line.startsWith("<Table-Callout-Entry> ")) {
 					
 					String label = line.substring((line.indexOf("<Table-Callout-Entry> ") + "<Table-Callout-Entry> ".length()));
-//					bufferCalloutTable.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of table \""+(boxLabel)+"\" is it correct?");
+//					bufferCalloutTable.append("\nAU: Please verify, in-text callout of table \""+(boxLabel)+"\" is it correct?");
 					
 					if (floatcalloutTableCount == 0) {
 						
-						bufferCalloutTable.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of table sequence-order for ");
+						bufferCalloutTable.append("\nAU: Please verify, in-text callout of table sequence-order for ");
 						bufferCalloutTable.append("\"" + label + "\"");
 					}  
 						
@@ -207,11 +207,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 				if (line.startsWith("<Video-Callout-Entry> ")) {
 					
 					String label = line.substring((line.indexOf("<Video-Callout-Entry> ") + "<Video-Callout-Entry> ".length()));
-//					bufferCalloutVideo.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of video \""+(boxLabel)+"\" is it correct?");
+//					bufferCalloutVideo.append("\nAU: Please verify, in-text callout of video \""+(boxLabel)+"\" is it correct?");
 					
 					if (floatcalloutVideoCount == 0) {
 						
-						bufferCalloutVideo.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of video sequence-order for ");
+						bufferCalloutVideo.append("\nAU: Please verify, in-text callout of video sequence-order for ");
 						bufferCalloutVideo.append("\"" + label + "\"");
 					}  
 						
@@ -301,24 +301,24 @@ public class AlertsQueryImpl implements AlertsQuery {
 				 * 
 				 */
 				
-				if (line.startsWith("{float main figure")) { // {FLOAT MAIN FIGURE MISSING}=Fig. 36.32
+				if (line.startsWith("{FLOAT MAIN FIGURE")) { // {FLOAT MAIN FIGURE MISSING}=Fig. 36.32
 					
 					line = fileWriterI.figureCrossMarking(line);
 					int indexCrossRefOpen = line.indexOf("<@cross-ref-fig-open>");
 					int indexCrossRefClose = line.indexOf("<@cross-ref-fig-close>");
 					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
 						
-						String boxLabel = line.substring((line.indexOf("<@cross-ref-fig-open>") + "<@cross-ref-fig-open>".length()), line.indexOf("<@cross-ref-fig-close>"));
+						String figLabel = line.substring((line.indexOf("<@cross-ref-fig-open>") + "<@cross-ref-fig-open>".length()), line.indexOf("<@cross-ref-fig-close>"));
 						
 						if (floatmainFigureCount == 0) {
 							
-							bufferFloatFigure.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, data placement of figure is missing for ");
-							bufferFloatFigure.append("\"" + boxLabel + "\"");
+							bufferFloatFigure.append("\nAU: Please verify, data placement of figure is missing for ");
+							bufferFloatFigure.append("\"" + figLabel + "\"");
 						}  
 							
 						if (floatmainFigureCount > 0) {
 							
-							bufferFloatFigure.append(", \"" + boxLabel + "\"");
+							bufferFloatFigure.append(", \"" + figLabel + "\"");
 						}
 						
 						floatmainFigureCount ++;
@@ -332,11 +332,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
 						
 						String boxLabel = line.substring((line.indexOf("<@cross-ref-box-open>") + "<@cross-ref-box-open>".length()), line.indexOf("<@cross-ref-box-close>"));
-//						bufferFloatBox.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, float item box is missing for \"" + boxLabel+"\"");
+//						bufferFloatBox.append("\nAU: Please verify, float item box is missing for \"" + boxLabel+"\"");
 						
 						if (floatmainBoxCount == 0) {
 							
-							bufferFloatBox.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, data placement of box is missing for ");
+							bufferFloatBox.append("\nAU: Please verify, data placement of box is missing for ");
 							bufferFloatBox.append("\"" + boxLabel + "\"");
 						}  
 							
@@ -356,11 +356,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
 						
 						String boxLabel = line.substring((line.indexOf("<@cross-ref-table-open>") + "<@cross-ref-table-open>".length()), line.indexOf("<@cross-ref-table-close>"));
-//						bufferFloatTable.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, float item table is missing for \"" + boxLabel+"\"");
+//						bufferFloatTable.append("\nAU: Please verify, float item table is missing for \"" + boxLabel+"\"");
 						
 						if (floatmainTableCount == 0) {
 							
-							bufferFloatTable.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, data placement of table is missing for ");
+							bufferFloatTable.append("\nAU: Please verify, data placement of table is missing for ");
 							bufferFloatTable.append("\"" + boxLabel + "\"");
 						}  
 							
@@ -384,7 +384,7 @@ public class AlertsQueryImpl implements AlertsQuery {
 						
 						if (floatmainVideoCount == 0) {
 							
-							bufferFloatVideo.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, data placement of video is missing for ");
+							bufferFloatVideo.append("\nAU: Please verify, data placement of video is missing for ");
 							bufferFloatVideo.append("\"" + boxLabel + "\"");
 						}  
 							
@@ -412,11 +412,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
 						
 						String boxLabel = line.substring((line.indexOf("<@cross-ref-fig-open>") + "<@cross-ref-fig-open>".length()), line.indexOf("<@cross-ref-fig-close>"));
-//						bufferCalloutFigure.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of figure \""+(boxLabel)+"\" is it correct?");
+//						bufferCalloutFigure.append("\nAU: Please verify, in-text callout of figure \""+(boxLabel)+"\" is it correct?");
 						
 						if (floatcalloutFigureCount == 0) {
 							
-							bufferCalloutFigure.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of figure is missing for ");
+							bufferCalloutFigure.append("\nAU: Please verify, in-text callout of figure is missing for ");
 							bufferCalloutFigure.append("\"" + boxLabel + "\"");
 						}  
 							
@@ -436,11 +436,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
 						
 						String boxLabel = line.substring((line.indexOf("<@cross-ref-box-open>") + "<@cross-ref-box-open>".length()), line.indexOf("<@cross-ref-box-close>"));
-//						bufferCalloutBox.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of box \""+(boxLabel)+"\" is it correct?");
+//						bufferCalloutBox.append("\AU: Please verify, in-text callout of box \""+(boxLabel)+"\" is it correct?");
 						
 						if (floatcalloutBoxCount == 0) {
 							
-							bufferCalloutBox.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of box is missing for ");
+							bufferCalloutBox.append("\nAU: Please verify, in-text callout of box is missing for ");
 							bufferCalloutBox.append("\"" + boxLabel + "\"");
 						}  
 							
@@ -460,11 +460,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
 						
 						String boxLabel = line.substring((line.indexOf("<@cross-ref-table-open>") + "<@cross-ref-table-open>".length()), line.indexOf("<@cross-ref-table-close>"));
-//						bufferCalloutTable.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of table \""+(boxLabel)+"\" is it correct?");
+//						bufferCalloutTable.append("\nAU: Please verify, in-text callout of table \""+(boxLabel)+"\" is it correct?");
 						
 						if (floatcalloutTableCount == 0) {
 							
-							bufferCalloutTable.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of table is missing for ");
+							bufferCalloutTable.append("\nAU: Please verify, in-text callout of table is missing for ");
 							bufferCalloutTable.append("\"" + boxLabel + "\"");
 						}  
 							
@@ -484,11 +484,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
 						
 						String boxLabel = line.substring((line.indexOf("<@cross-ref-video-open>") + "<@cross-ref-video-open>".length()), line.indexOf("<@cross-ref-video-close>"));
-//						bufferCalloutVideo.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of video \""+(boxLabel)+"\" is it correct?");
+//						bufferCalloutVideo.append("\nAU: Please verify, in-text callout of video \""+(boxLabel)+"\" is it correct?");
 						
 						if (floatcalloutVideoCount == 0) {
 							
-							bufferCalloutVideo.append("\nAlert "+(++Constants.alertIndex)+": AU: Please verify, in-text callout of video is missing for ");
+							bufferCalloutVideo.append("\nAU: Please verify, in-text callout of video is missing for ");
 							bufferCalloutVideo.append("\"" + boxLabel + "\"");
 						}  
 							
@@ -567,11 +567,11 @@ public class AlertsQueryImpl implements AlertsQuery {
 			}
 			
 			if (!isAbstract &! isKeywords) {
-				buffer.append("\nAlert "+(++Constants.alertIndex)+": AU: Please provide “Abstract & Keywords” as applicable.");
+				buffer.append("\nAU: Please provide “Abstract & Keywords” as applicable.");
 			} else if (isAbstract &! isKeywords) {
-				buffer.append("\nAlert "+(++Constants.alertIndex)+": AU: Please provide “Keywords” as applicable.");
+				buffer.append("\nAU: Please provide “Keywords” as applicable.");
 			} else if (!isAbstract & isKeywords) {
-				buffer.append("\nAlert "+(++Constants.alertIndex)+": AU: Please provide “Abstract” as applicable.");
+				buffer.append("\nAU: Please provide “Abstract” as applicable.");
 			}
 			
 		} catch(Exception exception)	{	logger.error(exception.getMessage(), exception);	}

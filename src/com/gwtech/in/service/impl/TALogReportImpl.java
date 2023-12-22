@@ -950,6 +950,11 @@ public class TALogReportImpl implements TALogReport {
 			String mainLine = "";
 			while( (mainLine = bufferedReader.readLine()) != null ){
 				
+				mainLine = mainLine.replaceAll("(?i)Figs", "Fig");
+				mainLine = mainLine.replaceAll("(?i)Boxs", "Box");
+				mainLine = mainLine.replaceAll("(?i)Tables", "Table");
+				mainLine = mainLine.replaceAll("(?i)Videos", "Video");
+				
 				if (type.equalsIgnoreCase("box"))
 					mainLine = fileWriterI.boxCrossMarking(mainLine);
 				else if (type.equalsIgnoreCase("fig"))

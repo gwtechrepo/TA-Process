@@ -88,7 +88,8 @@ public class ReportingServiceImpl implements ReportingService {
 						
 						//EXITING THE ABDOMEN AND CLOSURE TECHNIQUES
 						
-						paraText = wordToText.fetchChapterTitleSourceTextFromDoc(paragraph);
+//						paraText = wordToText.fetchChapterTitleSourceTextFromDoc(paragraph);
+						paraText = miscUtility.fetchParagraphNormalTextFromDoc(paragraph, "");
 						
 						paraText = miscUtility.removeExtraSpaces(paraText);
 						paraText = miscUtility.removeStartEndSpaces(paraText);
@@ -141,7 +142,9 @@ public class ReportingServiceImpl implements ReportingService {
 					} else if ((paraText.toLowerCase().startsWith("<chap ")) 
 							& ((paraText.toLowerCase().contains("outline")) == false) 
 							& (paraText.toLowerCase().contains("itle>") == false) 
-							& ((paraText.toLowerCase().contains("obj")) == false)) {
+							& ((paraText.toLowerCase().contains("obj")) == false)
+							& ((paraText.toLowerCase().contains("summary")) == false)
+							) {
 						
 						paraText = paraText.substring(0, (paraText.indexOf(">") + 1));
 						String chapNoInfo = "";
@@ -156,6 +159,31 @@ public class ReportingServiceImpl implements ReportingService {
 						result[2] = chapNoInfo;
 						
 						isBodyActive = true;
+					}
+					
+					if (result[2] == null) {
+						
+						if ((paraText.toLowerCase().startsWith("<chapter ")) 
+								& ((paraText.toLowerCase().contains("outline")) == false) 
+								& (paraText.toLowerCase().contains("itle>") == false) 
+								& ((paraText.toLowerCase().contains("obj")) == false)
+								& ((paraText.toLowerCase().contains("summary")) == false)
+								) {
+							
+							paraText = paraText.substring(0, (paraText.indexOf(">") + 1));
+							String chapNoInfo = "";
+							
+							if (paraText.startsWith("<chapter "))
+								chapNoInfo = paraText.substring((paraText.indexOf("<chapter ") + 9), (paraText.indexOf(">")));
+							else if (paraText.startsWith("<CHAPTER "))
+								chapNoInfo = paraText.substring((paraText.indexOf("<CHAPTER ") + 9), (paraText.indexOf(">")));
+							else
+								chapNoInfo = paraText.substring(9, (paraText.indexOf(">")));
+							
+							result[2] = chapNoInfo;
+							
+							isBodyActive = true;
+						}
 					}
 					
 					/**

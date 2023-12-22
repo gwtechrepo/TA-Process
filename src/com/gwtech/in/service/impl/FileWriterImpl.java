@@ -174,7 +174,7 @@ public class FileWriterImpl implements FileWriterI {
 			softEnterHandling(path);
 			
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
-			JSONArray array = HttpRequestImpl.get("auth/universal-char-request?type=universal");
+//			JSONArray array = HttpRequestImpl.get("auth/universal-char-request?type=universal");
 			
 			String line = "";
 			
@@ -183,6 +183,8 @@ public class FileWriterImpl implements FileWriterI {
 //				filter for TA assistance
 //				delete double spaces
 				
+				if (line.contains("The transducer is then placed at the posterolateral "))
+					logger.debug(line);
 				
 				while (line.contains("  "))	line = line.replace("  ", " ");
 				line = line.replace("[[[SOFT-BREAK-ENTRY]]][[[SOFT-BREAK-ENTRY]]]", "[[[SOFT-BREAK-ENTRY]]]");
@@ -194,8 +196,20 @@ public class FileWriterImpl implements FileWriterI {
 				Boolean isFloatItem = false;
 				
 				String lineWithoutMarginPadding = removeMarginPading(line);
+				
+				String figStyle = "";
+				if ((lineWithoutMarginPadding.startsWith("@")) & (lineWithoutMarginPadding.indexOf(":") > 0))
+					figStyle = lineWithoutMarginPadding.substring((1), (lineWithoutMarginPadding.indexOf(":")));
+				
 				lineWithoutMarginPadding = removeParaStyle(lineWithoutMarginPadding);
 				isFloatItem = taFloatItemOrdering.floatItemCheckLog(lineWithoutMarginPadding, false);
+				
+				if ((lineWithoutMarginPadding.toLowerCase().startsWith("fig ")) || (lineWithoutMarginPadding.toLowerCase().startsWith("figure ")) ||
+						(figStyle.startsWith("Fig")) || (lineWithoutMarginPadding.toLowerCase().startsWith("box ")) || (lineWithoutMarginPadding.toLowerCase().startsWith("table ")) )
+					isFloatItem = true;
+				
+				
+				
 				if ( ! isFloatItem)
 					line = handleCrossRefsOccurances(line);
 				
@@ -234,8 +248,121 @@ public class FileWriterImpl implements FileWriterI {
 		
 		boolean isFound = false;
 		
-		if (! Constants.isReportingFace)
-		line = handleFigRangesDelimeters(line);
+		if (line.contains("The transducer is then placed at the posterolateral "))
+			System.out.println("Planning (Figs 14.27.6.2–14.27.6.5, Table 14.27.");
+		
+		if (! Constants.isReportingFace) {
+			
+			line = handleFigRangesDelimeters(line);
+			
+			if (line.contains("<@cross-ref-fig-open>")) {
+				
+				int index = 0, startsNumber = 0, endsNumber = 0;
+				
+				String mainLine = line;
+				StringBuffer newCrossRefEntry = new StringBuffer();
+				
+				while (mainLine.contains("<@cross-ref-fig-open>")) {
+					
+					int indexCrossRefOpen = mainLine.indexOf("<@cross-ref-fig-open>");
+					int indexCrossRefClose = mainLine.indexOf("<@cross-ref-fig-close>");
+					
+					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
+						
+						String floatLabel = mainLine.substring((mainLine.indexOf("<@cross-ref-fig-open>") + "<@cross-ref-fig-open>".length()), mainLine.indexOf("<@cross-ref-fig-close>"));
+						String itemNum = miscUtility.fetchItemNumber(floatLabel);
+						
+//						if (Constants.figRange.contains(itemNum) == false) {
+							
+							index++;
+//							Constants.figRange.add(itemNum);
+							if (index == 1) {
+								if (miscUtility.isNumber(itemNum))
+									startsNumber = Integer.parseInt(itemNum);
+							} else if (index == 2) {
+								
+								if (miscUtility.isNumber(itemNum))
+									endsNumber = Integer.parseInt(itemNum);
+								
+								if (endsNumber > startsNumber) {
+									
+									int loopTime = endsNumber - startsNumber;
+									for (int indexInner = 0; loopTime > (indexInner); indexInner ++) {
+										
+										if(floatLabel.contains(".")) {
+											String data = floatLabel.substring(0, floatLabel.lastIndexOf("."));
+											newCrossRefEntry.append("<@cross-ref-fig-open>"+(data + "." + (startsNumber + indexInner + 1))+"<@cross-ref-fig-close>");
+										}
+									}
+								}
+								
+								String figsCrossRefTag = mainLine.substring((mainLine.indexOf("<@cross-ref-fig-open>")), (mainLine.indexOf("<@cross-ref-fig-close>") + "<@cross-ref-fig-close>".length()));
+								if (newCrossRefEntry.toString().length() > 0)
+									line = line.replace(figsCrossRefTag, newCrossRefEntry.toString());
+								
+								index = 0;
+							}
+//						}
+						
+						String tagText = "<@cross-ref-fig-open>" + floatLabel + "<@cross-ref-fig-close>";
+						String prefixMainLine = mainLine.substring(0, mainLine.indexOf(tagText));
+						String suffixMainLine = mainLine.substring(mainLine.indexOf(tagText) + (tagText.length()));
+						
+						mainLine = prefixMainLine + suffixMainLine;
+					}
+				}
+
+			}
+		}
+		
+		
+		//Fig. 4.10.1.2
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2\\.$3\\.$4<@cross-ref-fig-close>");
+		
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2\\.$3\\.$4<@cross-ref-fig-close>");
+
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2\\.$3\\.$4<@cross-ref-fig-close>");
+
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2\\.$3\\-$4<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2\\.$3\\.$4<@cross-ref-fig-close>");
+		
+		if (line.contains("<@cross-ref-fig-open>"))
+			return line;
+		
+		//Fig. 4.10.1
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2\\.$3<@cross-ref-fig-close>");
+		
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2\\.$3<@cross-ref-fig-close>");
+
+		
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2\\.$3<@cross-ref-fig-close>");
+
+		
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2\\-$3<@cross-ref-fig-close>");
+		line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2\\.$3<@cross-ref-fig-close>");
+		
 		
 		
 		/**
@@ -412,6 +539,7 @@ public class FileWriterImpl implements FileWriterI {
 		line = line.replaceAll("(?i)Figure E([0-9]+)([a-z]+)\\-([0-9]+)([a-z]+)", "<@cross-ref-fig-open>Figure E$1$2\\-$3$4<@cross-ref-fig-close>");
 
 		
+
 		
 		if (line.contains("<@cross-ref-fig-open>"))	isFound = true;
 		if (!isFound) {
@@ -450,25 +578,90 @@ public class FileWriterImpl implements FileWriterI {
 			
 			boolean isFound = false;
 			
+//			Figs 14.27.6.2–14.27.6.5
+//			Figs 14.28.1.11−14.28.1.28 // Figs 14.28.3.18A and B, 14.28.3.19A and B
+			
+			
+			
+			//Fig. 4.10.1.2
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\-$7<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\.$3\\—$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\—$7<@cross-ref-fig-close>"); // em-dash
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\-$7<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\.$3\\.$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\.$7<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\.$3\\.$4<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$5\\.$6\\.$7\\.$7<@cross-ref-fig-close>"); // simple dash
+
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\.$3\\-$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\-$8<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\.$3\\—$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\—$8<@cross-ref-fig-close>"); // em-dash
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\.$3\\-$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\-$8<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\.$3\\.$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\.$8<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\.$3\\.$4<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$5\\.$6\\.$7\\.$8<@cross-ref-fig-close>"); // simple dash
+
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\-$8<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\.$3\\—$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\—$8<@cross-ref-fig-close>"); // em-dash
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\.$3\\-$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\-$8<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\.$3\\.$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\.$8<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\.$3\\.$4<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$5\\.$6\\.$7\\.$8<@cross-ref-fig-close>"); // simple dash
+
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\.$3\\-$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\-$8<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\.$3\\—$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\—$8<@cross-ref-fig-close>"); // em-dash
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\.$3\\-$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\-$8<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\.$3\\.$4<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$5\\.$6\\.$7\\.$8<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\.$3\\.$4<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$5\\.$6\\.$7\\.$8<@cross-ref-fig-close>"); // simple dash
+
+			if (line.contains("<@cross-ref-fig-open>"))
+				return line;
+			
+			//Fig. 4.10.1
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\-$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\-$6<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\—$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\—$6<@cross-ref-fig-close>"); // em-dash
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\-$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\-$6<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\.$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\.$6<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figs\\. $1\\.$2\\.$3<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$4\\.$5\\.$6<@cross-ref-fig-close>"); // simple dash
+			
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\-$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\-$6<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\—$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\—$6<@cross-ref-fig-close>"); // em-dash
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\-$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\-$6<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\.$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\.$6<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figs ([0-9]+)\\.([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figs $1\\.$2\\.$3<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$4\\.$5\\.$6<@cross-ref-fig-close>"); // simple dash
+
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\-$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\-$6<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\—$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\—$6<@cross-ref-fig-close>"); // em-dash
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\-$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\-$6<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\.$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\.$6<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figures\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figures\\. $1\\.$2\\.$3<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$4\\.$5\\.$6<@cross-ref-fig-close>"); // simple dash
+			
+			line = line.replaceAll("(?i)Figures. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\-$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\-$6<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\—$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\—$6<@cross-ref-fig-close>"); // em-dash
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\-$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\-$6<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\.$3<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$4\\.$5\\.$6<@cross-ref-fig-close>"); // simple dash
+			line = line.replaceAll("(?i)Figures ([0-9]+)\\.([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2\\.$3<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$4\\.$5\\.$6<@cross-ref-fig-close>"); // simple dash
+
+			if (line.contains("<@cross-ref-fig-open>"))
+				return line;
+			
 			line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // simple dash
 			line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // em-dash
 			line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\–([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // en-dash
 			line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Fig\\. ([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig\\. $1\\.$2<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
 			
 			line = line.replaceAll("(?i)Fig ([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Fig $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // simple dash
 			line = line.replaceAll("(?i)Fig ([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Fig $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // em-dash
 			line = line.replaceAll("(?i)Fig ([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\–([0-9]+)", "<@cross-ref-fig-open>Fig $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // en-dash
 			line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Fig ([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Fig $1\\.$2<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
 			
 			line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // simple dash
 			line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // em-dash
 			line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\–([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // en-dash
 			line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figure\\. ([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure\\. $1\\.$2<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
 			
 			line = line.replaceAll("(?i)Figure ([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\-([0-9]+)", "<@cross-ref-fig-open>Figure $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // simple dash
 			line = line.replaceAll("(?i)Figure ([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\—([0-9]+)", "<@cross-ref-fig-open>Figure $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // em-dash
 			line = line.replaceAll("(?i)Figure ([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\–([0-9]+)", "<@cross-ref-fig-open>Figure $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // en-dash
 			line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
+			line = line.replaceAll("(?i)Figure ([0-9]+)\\.([0-9]+)"+(Constants.delimeters[index])+"([0-9]+)\\.([0-9]+)", "<@cross-ref-fig-open>Figure $1\\.$2<@cross-ref-fig-close>"+(Constants.delimeters[index])+"<@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
 			
 			
 			
@@ -684,7 +877,9 @@ public class FileWriterImpl implements FileWriterI {
 			line = line.replaceAll("(?i)Figures E([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)\\— ([0-9]+)", "<@cross-ref-fig-open>Figures $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // em-dash
 			line = line.replaceAll("(?i)Figures E([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)\\– ([0-9]+)", "<@cross-ref-fig-open>Figures $1\\-$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\-$4<@cross-ref-fig-close>"); // en-dash
 			line = line.replaceAll("(?i)Figures E([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" E([0-9]+)\\. ([0-9]+)", "<@cross-ref-fig-open>Figures $1\\.$2<@cross-ref-fig-close> "+(Constants.delimeters[index])+" <@cross-ref-fig-open>$3\\.$4<@cross-ref-fig-close>"); // en-dash
-
+			
+			
+			
 			
 			if (line.contains("<@cross-ref-fig-open>"))	isFound = true;
 			if ( ! isFound) {
@@ -725,8 +920,98 @@ public class FileWriterImpl implements FileWriterI {
 		
 		boolean isFound = false;
 		
-		if (! Constants.isReportingFace)
+		if (! Constants.isReportingFace) {
+			
 			line = handleTableRangesDelimeters(line);
+			
+			if (line.contains("<@cross-ref-table-open>")) {
+				
+				int index = 0, startsNumber = 0, endsNumber = 0;
+				String mainLine = line;
+				StringBuffer newCrossRefEntry = new StringBuffer();
+				
+				while (mainLine.contains("<@cross-ref-table-open>")) {
+					
+					int indexCrossRefOpen = mainLine.indexOf("<@cross-ref-table-open>");
+					int indexCrossRefClose = mainLine.indexOf("<@cross-ref-table-close>");
+					
+					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
+						
+						String floatLabel = mainLine.substring((mainLine.indexOf("<@cross-ref-table-open>") + "<@cross-ref-table-open>".length()), mainLine.indexOf("<@cross-ref-table-close>"));
+						String itemNum = miscUtility.fetchItemNumber(floatLabel);
+						
+//						if (Constants.figRange.contains(itemNum) == false) {
+							
+							index++;
+//							Constants.figRange.add(itemNum);
+							if (index == 1) {
+								if (miscUtility.isNumber(itemNum))
+									startsNumber = Integer.parseInt(itemNum);
+							} else if (index == 2) {
+								
+								if (miscUtility.isNumber(itemNum))
+									endsNumber = Integer.parseInt(itemNum);
+								
+								if (endsNumber > startsNumber) {
+									
+									int loopTime = endsNumber - startsNumber;
+									
+									for (int indexInner = 0; loopTime > (indexInner); indexInner ++) {
+										
+										if(floatLabel.contains(".")) {
+											String data = floatLabel.substring(0, floatLabel.lastIndexOf("."));
+											newCrossRefEntry.append("<@cross-ref-table-open>"+(data + "." + (startsNumber + indexInner + 1))+"<@cross-ref-table-close>");
+										}
+									}
+								}
+								
+								String figsCrossRefTag = mainLine.substring((mainLine.indexOf("<@cross-ref-table-open>")), (mainLine.indexOf("<@cross-ref-table-close>") + "<@cross-ref-table-close>".length()));
+								
+								if (newCrossRefEntry.toString().length() > 0)
+									line = line.replace(figsCrossRefTag, newCrossRefEntry.toString());
+								
+								index = 0;
+							}
+//						}
+						
+						String tagText = "<@cross-ref-table-open>" + floatLabel + "<@cross-ref-table-close>";
+						String prefixMainLine = mainLine.substring(0, mainLine.indexOf(tagText));
+						String suffixMainLine = mainLine.substring(mainLine.indexOf(tagText) + (tagText.length()));
+						
+						mainLine = prefixMainLine + suffixMainLine;
+					}
+				}
+
+			}
+
+		}
+		
+		//Table. 4.10.1.3
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\.$2\\.$3\\-$4<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\.$2\\.$3\\-$4<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\.$2\\.$3\\-$4<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\.$2\\.$3\\.$4<@cross-ref-table-close>");
+
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table $1\\.$2\\.$3\\-$4<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table $1\\.$2\\.$3\\-$4<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table $1\\.$2\\.$3\\-$4<@cross-ref-table-close>");
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-table-open>Table $1\\.$2\\.$3\\.$4<@cross-ref-table-close>");
+
+		if (line.contains("<@cross-ref-table-open>"))
+			return line;
+		
+		//Table. 4.10.1
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\.$2\\-$3<@cross-ref-table-close>"); // simple dash
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\.$2\\—$3<@cross-ref-table-close>"); // em-dash
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\.$2\\–$3<@cross-ref-table-close>"); // en-dash
+		line = line.replaceAll("(?i)Table\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\.$2\\.$3<@cross-ref-table-close>"); // simple period
+		
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table $1\\.$2\\-$3<@cross-ref-table-close>"); // simple dash
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-table-open>Table $1\\.$2\\—$3<@cross-ref-table-close>"); // em-dash
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-table-open>Table $1\\.$2\\–$3<@cross-ref-table-close>"); // en-dash
+		line = line.replaceAll("(?i)Table ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-table-open>Table $1\\.$2\\.$3<@cross-ref-table-close>"); // simple period
+
+		
 		
 		line = line.replace("<@cross-ref-table-open><@cross-ref-table-open>", "<@cross-ref-table-open>");
 		line = line.replace("<@cross-ref-table-close><@cross-ref-table-close>", "<@cross-ref-table-close>");
@@ -846,6 +1131,35 @@ public class FileWriterImpl implements FileWriterI {
 		for (int index = 0; index < Constants.delimeters.length; index ++) {
 			
 			boolean isFound = false;
+			
+			
+			//Table. 4.10.1.3
+			line = line.replaceAll("(?i)Tables\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Tables\\. $1\\.$2\\.$3\\-$4<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$5\\.$6\\.$7\\-$8<@cross-ref-table-close>"); // simple dash
+			line = line.replaceAll("(?i)Tables\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-table-open>Tables\\. $1\\.$2\\.$3\\—$4<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$5\\.$6\\.$7\\—$8<@cross-ref-table-close>"); // em-dash
+			line = line.replaceAll("(?i)Tables\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Tables\\. $1\\.$2\\.$3\\-$4<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$5\\.$6\\.$7\\-$8<@cross-ref-table-close>"); // en-dash
+			line = line.replaceAll("(?i)Tables\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-table-open>Tables\\. $1\\.$2\\.$3\\.$4<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$5\\.$6\\.$7\\.$8<@cross-ref-table-close>"); // simple period
+
+			line = line.replaceAll("(?i)Tables ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Tables $1\\.$2\\.$3\\-$4<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$5\\.$6\\.$7\\-$8<@cross-ref-table-close>"); // simple dash
+			line = line.replaceAll("(?i)Tables ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-table-open>Tables $1\\.$2\\.$3\\—$4<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$5\\.$6\\.$7\\—$8<@cross-ref-table-close>"); // em-dash
+			line = line.replaceAll("(?i)Tables ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Tables $1\\.$2\\.$3\\-$4<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$5\\.$6\\.$7\\-$8<@cross-ref-table-close>"); // en-dash
+			line = line.replaceAll("(?i)Tables ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-table-open>Tables $1\\.$2\\.$3\\.$4<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$5\\.$6\\.$7\\.$8<@cross-ref-table-close>"); // simple period
+			
+			if (line.contains("<@cross-ref-table-open>"))
+				return line;
+			
+			//Table. 4.10.1
+			line = line.replaceAll("(?i)Tables\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Tables\\. $1\\.$2\\-$3<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$4\\.$5\\-$6<@cross-ref-table-close>"); // simple dash
+			line = line.replaceAll("(?i)Tables\\. ([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-table-open>Tables\\. $1\\.$2\\—$3<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$4\\.$5\\—$6<@cross-ref-table-close>"); // em-dash
+			line = line.replaceAll("(?i)Tables\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Tables\\. $1\\.$2\\-$3<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$4\\.$5\\-$6<@cross-ref-table-close>"); // en-dash
+			line = line.replaceAll("(?i)Tables\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-table-open>Tables\\. $1\\.$2\\.$3<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$4\\.$5\\.$6<@cross-ref-table-close>"); // simple period
+			
+			line = line.replaceAll("(?i)Tables ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Tables $1\\.$2\\-$3<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$4\\.$5\\-$6<@cross-ref-table-close>"); // simple dash
+			line = line.replaceAll("(?i)Tables ([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-table-open>Tables $1\\.$2\\—$3<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$4\\.$5\\—$6<@cross-ref-table-close>"); // em-dash
+			line = line.replaceAll("(?i)Tables ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Tables $1\\.$2\\-$3<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$4\\.$5\\-$6<@cross-ref-table-close>"); // en-dash
+			line = line.replaceAll("(?i)Tables ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-table-open>Tables $1\\.$2\\.$3<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$4\\.$5\\.$6<@cross-ref-table-close>"); // simple period
+
+			if (line.contains("<@cross-ref-table-open>"))
+				return line;
 			
 			line = line.replaceAll("(?i)Table\\. ([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\-([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\-$2<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$3\\-$4<@cross-ref-table-close>"); // simple dash
 			line = line.replaceAll("(?i)Table\\. ([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\—([0-9]+)", "<@cross-ref-table-open>Table\\. $1\\—$2<@cross-ref-table-close> "+(Constants.delimeters[index])+" <@cross-ref-table-open>$3\\-$4<@cross-ref-table-close>"); // em-dash
@@ -1079,8 +1393,94 @@ public class FileWriterImpl implements FileWriterI {
 		
 		boolean isFound = false;
 		
-		if (! Constants.isReportingFace)
+		if (! Constants.isReportingFace) {
+			
 			line = handleBoxRangesDelimeters(line);
+			
+			if (line.contains("<@cross-ref-box-open>")) {
+				
+				int index = 0, startsNumber = 0, endsNumber = 0;
+				String mainLine = line;
+				StringBuffer newCrossRefEntry = new StringBuffer();
+				
+				while (mainLine.contains("<@cross-ref-box-open>")) {
+					
+					int indexCrossRefOpen = mainLine.indexOf("<@cross-ref-box-open>");
+					int indexCrossRefClose = mainLine.indexOf("<@cross-ref-box-close>");
+					
+					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
+						
+						String floatLabel = mainLine.substring((mainLine.indexOf("<@cross-ref-box-open>") + "<@cross-ref-box-open>".length()), mainLine.indexOf("<@cross-ref-box-close>"));
+						String itemNum = miscUtility.fetchItemNumber(floatLabel);
+						
+//						if (Constants.figRange.contains(itemNum) == false) {
+							
+							index++;
+//							Constants.figRange.add(itemNum);
+							if (index == 1) {
+								if (miscUtility.isNumber(itemNum))
+									startsNumber = Integer.parseInt(itemNum);
+							} else if (index == 2) {
+								
+								if (miscUtility.isNumber(itemNum))
+									endsNumber = Integer.parseInt(itemNum);
+								
+								if (endsNumber > startsNumber) {
+									
+									int loopTime = endsNumber - startsNumber;
+									
+									for (int indexInner = 0; loopTime > (indexInner); indexInner ++) {
+										
+										if(floatLabel.contains(".")) {
+											String data = floatLabel.substring(0, floatLabel.lastIndexOf("."));
+											newCrossRefEntry.append("<@cross-ref-box-open>"+(data + "." + (startsNumber + indexInner + 1))+"<@cross-ref-box-close>");
+										}
+									}
+								}
+								
+								String figsCrossRefTag = mainLine.substring((mainLine.indexOf("<@cross-ref-box-open>")), (mainLine.indexOf("<@cross-ref-box-close>") + "<@cross-ref-box-close>".length()));
+								
+								if (newCrossRefEntry.toString().length() > 0)
+									line = line.replace(figsCrossRefTag, newCrossRefEntry.toString());
+								
+								index = 0;
+							}
+//						}
+						
+						String tagText = "<@cross-ref-box-open>" + floatLabel + "<@cross-ref-box-close>";
+						String prefixMainLine = mainLine.substring(0, mainLine.indexOf(tagText));
+						String suffixMainLine = mainLine.substring(mainLine.indexOf(tagText) + (tagText.length()));
+						
+						mainLine = prefixMainLine + suffixMainLine;
+					}
+				}
+			}
+		}
+		//BOX. 4.10.1.3
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\.$2\\.$3\\-$4<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\.$2\\.$3\\-$4<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\.$2\\.$3\\-$4<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\.$2\\.$3\\.$4<@cross-ref-box-close>");
+
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box $1\\.$2\\.$3\\-$4<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box $1\\.$2\\.$3\\-$4<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box $1\\.$2\\.$3\\-$4<@cross-ref-box-close>");
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-box-open>Box $1\\.$2\\.$3\\.$4<@cross-ref-box-close>");
+
+		if (line.contains("<@cross-ref-box-open>"))
+			return line;
+		
+		//Box. 4.10.1
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\.$2\\-$3<@cross-ref-box-close>"); // simple dash
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\.$2\\—$3<@cross-ref-box-close>"); // em-dash
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\.$2\\–$3<@cross-ref-box-close>"); // en-dash
+		line = line.replaceAll("(?i)Box\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\.$2\\.$3<@cross-ref-box-close>"); // simple period
+		
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box $1\\.$2\\-$3<@cross-ref-box-close>"); // simple dash
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-box-open>Box $1\\.$2\\—$3<@cross-ref-box-close>"); // em-dash
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-box-open>Box $1\\.$2\\–$3<@cross-ref-box-close>"); // en-dash
+		line = line.replaceAll("(?i)Box ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-box-open>Box $1\\.$2\\.$3<@cross-ref-box-close>"); // simple period
+
 		
 		line = line.replace("<@cross-ref-box-open><@cross-ref-box-open>", "<@cross-ref-box-open>");
 		line = line.replace("<@cross-ref-box-close><@cross-ref-box-close>", "<@cross-ref-box-close>");
@@ -1202,6 +1602,36 @@ public class FileWriterImpl implements FileWriterI {
 		for (int index = 0; index < Constants.delimeters.length; index ++) {
 			
 			boolean isFound = false;
+			
+			
+			//Box. 4.10.1.3
+			line = line.replaceAll("(?i)Boxs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1\\.$2\\.$3\\-$4<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$5\\.$6\\.$7\\-$8<@cross-ref-box-close>"); // simple dash
+			line = line.replaceAll("(?i)Boxs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1\\.$2\\.$3\\-$4<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$5\\.$6\\.$7\\-$8<@cross-ref-box-close>"); // em-dash
+			line = line.replaceAll("(?i)Boxs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1\\.$2\\.$3\\-$4<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$5\\.$6\\.$7\\-$8<@cross-ref-box-close>"); // en-dash
+			line = line.replaceAll("(?i)Boxs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1\\.$2\\.$3\\.$4<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$5\\.$6\\.$7\\.$8<@cross-ref-box-close>"); // simple period
+
+			line = line.replaceAll("(?i)Boxs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs $1\\.$2\\.$3\\-$4<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$5\\.$6\\.$7\\-$8<@cross-ref-box-close>"); // simple dash
+			line = line.replaceAll("(?i)Boxs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs $1\\.$2\\.$3\\-$4<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$5\\.$6\\.$7\\-$8<@cross-ref-box-close>"); // em-dash
+			line = line.replaceAll("(?i)Boxs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs $1\\.$2\\.$3\\-$4<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$5\\.$6\\.$7\\-$8<@cross-ref-box-close>"); // en-dash
+			line = line.replaceAll("(?i)Boxs ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-box-open>Boxs $1\\.$2\\.$3\\.$4<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$5\\.$6\\.$7\\.$8<@cross-ref-box-close>"); // simple period
+
+			if (line.contains("<@cross-ref-box-open>")) {
+				return line;
+			}
+			
+			//Box. 4.10.1
+			line = line.replaceAll("(?i)Boxs\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1\\.$2\\-$3<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$4\\.$5\\-$6<@cross-ref-box-close>"); // simple dash
+			line = line.replaceAll("(?i)Boxs\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1\\.$2\\-$3<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$4\\.$5\\-$6<@cross-ref-box-close>"); // em-dash
+			line = line.replaceAll("(?i)Boxs\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1\\.$2\\-$3<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$4\\.$5\\-$6<@cross-ref-box-close>"); // en-dash
+			line = line.replaceAll("(?i)Boxs\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-box-open>Boxs\\. $1\\.$2\\.$3<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$4\\.$5\\.$6<@cross-ref-box-close>"); // simple period
+			
+			line = line.replaceAll("(?i)Boxs ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs $1\\.$2\\-$3<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$4\\.$5\\-$6<@cross-ref-box-close>"); // simple dash
+			line = line.replaceAll("(?i)Boxs ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs $1\\.$2\\-$3<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$4\\.$5\\-$6<@cross-ref-box-close>"); // em-dash
+			line = line.replaceAll("(?i)Boxs ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Boxs $1\\.$2\\-$3<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$4\\.$5\\-$6<@cross-ref-box-close>"); // en-dash
+			line = line.replaceAll("(?i)Boxs ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-box-open>Boxs $1\\.$2\\.$3<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$4\\.$5\\.$6<@cross-ref-box-close>"); // simple period
+
+			if (line.contains("<@cross-ref-box-open>"))
+				return line;
 			
 			line = line.replaceAll("(?i)Box\\. ([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\-([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\-$2<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$3\\-$4<@cross-ref-box-close>"); // simple dash
 			line = line.replaceAll("(?i)Box\\. ([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\—([0-9]+)", "<@cross-ref-box-open>Box\\. $1\\—$2<@cross-ref-box-close> "+(Constants.delimeters[index])+" <@cross-ref-box-open>$3\\-$4<@cross-ref-box-close>"); // em-dash
@@ -1369,8 +1799,95 @@ public class FileWriterImpl implements FileWriterI {
 		
 		boolean isFound = false;
 		
-		if (! Constants.isReportingFace)
+		if (! Constants.isReportingFace) {
+			
 			line = handleVideoRangesDelimeters(line);
+			
+			if (line.contains("<@cross-ref-video-open>")) {
+				
+				int index = 0, startsNumber = 0, endsNumber = 0;
+				String mainLine = line;
+				StringBuffer newCrossRefEntry = new StringBuffer();
+				
+				while (mainLine.contains("<@cross-ref-video-open>")) {
+					
+					int indexCrossRefOpen = mainLine.indexOf("<@cross-ref-video-open>");
+					int indexCrossRefClose = mainLine.indexOf("<@cross-ref-video-close>");
+					
+					if ((indexCrossRefClose) > (indexCrossRefOpen)) {
+						
+						String floatLabel = mainLine.substring((mainLine.indexOf("<@cross-ref-video-open>") + "<@cross-ref-video-open>".length()), mainLine.indexOf("<@cross-ref-video-close>"));
+						String itemNum = miscUtility.fetchItemNumber(floatLabel);
+						
+//						if (Constants.figRange.contains(itemNum) == false) {
+							
+							index++;
+//							Constants.figRange.add(itemNum);
+							if (index == 1) {
+								if (miscUtility.isNumber(itemNum))
+									startsNumber = Integer.parseInt(itemNum);
+							} else if (index == 2) {
+								
+								if (miscUtility.isNumber(itemNum))
+									endsNumber = Integer.parseInt(itemNum);
+								
+								if (endsNumber > startsNumber) {
+									
+									int loopTime = endsNumber - startsNumber;
+									
+									for (int indexInner = 0; loopTime > (indexInner); indexInner ++) {
+										
+										if(floatLabel.contains(".")) {
+											String data = floatLabel.substring(0, floatLabel.lastIndexOf("."));
+											newCrossRefEntry.append("<@cross-ref-video-open>"+(data + "." + (startsNumber + indexInner + 1))+"<@cross-ref-video-close>");
+										}
+									}
+								}
+								
+								String figsCrossRefTag = mainLine.substring((mainLine.indexOf("<@cross-ref-video-open>")), (mainLine.indexOf("<@cross-ref-video-close>") + "<@cross-ref-video-close>".length()));
+								
+								if (newCrossRefEntry.toString().length() > 0)
+									line = line.replace(figsCrossRefTag, newCrossRefEntry.toString());
+								
+								index = 0;
+							}
+//						}
+						
+						String tagText = "<@cross-ref-video-open>" + floatLabel + "<@cross-ref-video-close>";
+						String prefixMainLine = mainLine.substring(0, mainLine.indexOf(tagText));
+						String suffixMainLine = mainLine.substring(mainLine.indexOf(tagText) + (tagText.length()));
+						
+						mainLine = prefixMainLine + suffixMainLine;
+					}
+				}
+			}
+		}
+		//Video. 4.10.1.3
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\.$2\\.$3\\-$4<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\.$2\\.$3\\-$4<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\.$2\\.$3\\-$4<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\.$2\\.$3\\.$4<@cross-ref-video-close>");
+
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video $1\\.$2\\.$3\\-$4<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video $1\\.$2\\.$3\\-$4<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+).([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video $1\\.$2\\.$3\\-$4<@cross-ref-video-close>");
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+).([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Video $1\\.$2\\.$3\\.$4<@cross-ref-video-close>");
+
+		if (line.contains("<@cross-ref-video-open>"))
+			return line;
+		
+		//Video. 4.10.1
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\.$2\\-$3<@cross-ref-video-close>"); // simple dash
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\.$2\\—$3<@cross-ref-video-close>"); // em-dash
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\.$2\\–$3<@cross-ref-video-close>"); // en-dash
+		line = line.replaceAll("(?i)Video\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\.$2\\.$3<@cross-ref-video-close>"); // simple period
+		
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video $1\\.$2\\-$3<@cross-ref-video-close>"); // simple dash
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-video-open>Video $1\\.$2\\—$3<@cross-ref-video-close>"); // em-dash
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-video-open>Video $1\\.$2\\–$3<@cross-ref-video-close>"); // en-dash
+		line = line.replaceAll("(?i)Video ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Video $1\\.$2\\.$3<@cross-ref-video-close>"); // simple period
+		
+
 		
 		line = line.replace("<@cross-ref-video-open><@cross-ref-video-open>", "<@cross-ref-video-open>");
 		line = line.replace("<@cross-ref-video-close><@cross-ref-video-close>", "<@cross-ref-video-close>");
@@ -1479,6 +1996,34 @@ public class FileWriterImpl implements FileWriterI {
 		for (int index = 0; index < Constants.delimeters.length; index ++) {
 			
 			boolean isFound = false;
+			
+			//Video. 4.10.1.4
+			line = line.replaceAll("(?i)Videos\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Videos\\. $1\\.$2\\.$3\\-$4<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$5\\.$6\\.$7\\-$8<@cross-ref-video-close>"); // simple dash
+			line = line.replaceAll("(?i)Videos\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-video-open>Videos\\. $1\\.$2\\.$3\\—$4<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$5\\.$6\\.$7\\—$8<@cross-ref-video-close>"); // em-dash
+			line = line.replaceAll("(?i)Videos\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-video-open>Videos\\. $1\\.$2\\.$3\\–$4<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$5\\.$6\\.$7\\–$8<@cross-ref-video-close>"); // en-dash
+			line = line.replaceAll("(?i)Videos\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Videos\\. $1\\.$2\\.$3\\.$4<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$5\\.$6\\.$7\\.$8<@cross-ref-video-close>"); // simple period
+
+			line = line.replaceAll("(?i)Videos ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Videos $1\\.$2\\.$3\\-$4<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$5\\.$6\\.$7\\-$8<@cross-ref-video-close>"); // simple dash
+			line = line.replaceAll("(?i)Videos ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-video-open>Videos $1\\.$2\\.$3\\—$4<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$5\\.$6\\.$7\\—$8<@cross-ref-video-close>"); // em-dash
+			line = line.replaceAll("(?i)Videos ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-video-open>Videos $1\\.$2\\.$3\\–$4<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$5\\.$6\\.$7\\–$8<@cross-ref-video-close>"); // en-dash
+			line = line.replaceAll("(?i)Videos ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Videos $1\\.$2\\.$3\\.$4<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$5\\.$6\\.$7\\.$8<@cross-ref-video-close>"); // simple period
+
+			if (line.contains("<@cross-ref-video-open>"))
+				return line;
+			
+			//Video. 4.10.1
+			line = line.replaceAll("(?i)Videos\\. ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Videos\\. $1\\.$2\\-$3<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$4\\.$5\\-$6<@cross-ref-video-close>"); // simple dash
+			line = line.replaceAll("(?i)Videos\\. ([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-video-open>Videos\\. $1\\.$2\\—$3<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$4\\.$5\\—$6<@cross-ref-video-close>"); // em-dash
+			line = line.replaceAll("(?i)Videos\\. ([0-9]+)\\.([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-video-open>Videos\\. $1\\.$2\\–$3<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$4\\.$5\\–$6<@cross-ref-video-close>"); // en-dash
+			line = line.replaceAll("(?i)Videos\\. ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Videos\\. $1\\.$2\\.$3<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$4\\.$5\\.$6<@cross-ref-video-close>"); // simple period
+			
+			line = line.replaceAll("(?i)Videos ([0-9]+)\\.([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Videos $1\\.$2\\-$3<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$4\\.$5\\-$6<@cross-ref-video-close>"); // simple dash
+			line = line.replaceAll("(?i)Videos ([0-9]+)\\.([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\—([0-9]+)", "<@cross-ref-video-open>Videos $1\\.$2\\—$3<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$4\\.$5\\—$6<@cross-ref-video-close>"); // em-dash
+			line = line.replaceAll("(?i)Videos ([0-9]+)\\.([0-9]+)\\–([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\–([0-9]+)", "<@cross-ref-video-open>Videos $1\\.$2\\–$3<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$4\\.$5\\–$6<@cross-ref-video-close>"); // en-dash
+			line = line.replaceAll("(?i)Videos ([0-9]+)\\.([0-9]+)\\.([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\.([0-9]+)\\.([0-9]+)", "<@cross-ref-video-open>Videos $1\\.$2\\.$3<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$4\\.$5\\.$6<@cross-ref-video-close>"); // simple period
+
+			if (line.contains("<@cross-ref-video-open>"))
+				return line;
 			
 			line = line.replaceAll("(?i)Video\\. ([0-9]+)\\-([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\-([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\-$2<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$3\\-$4<@cross-ref-video-close>"); // simple dash
 			line = line.replaceAll("(?i)Video\\. ([0-9]+)\\—([0-9]+) "+(Constants.delimeters[index])+" ([0-9]+)\\—([0-9]+)", "<@cross-ref-video-open>Video\\. $1\\—$2<@cross-ref-video-close> "+(Constants.delimeters[index])+" <@cross-ref-video-open>$3\\-$4<@cross-ref-video-close>"); // em-dash
@@ -1615,7 +2160,7 @@ public class FileWriterImpl implements FileWriterI {
 //		Fig\. ([0-9]+)\.([0-9]+)//-
 		
 		line = figureCrossMarking(line);
-		if (line.contains("consistently proved to be a stronger predictor of outcomes than creatinine"))
+		if (line.contains("Figs 14.28.2.24A and B"))
 			logger.debug(line);
 		
 		String mainLine = line;
